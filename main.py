@@ -10,6 +10,106 @@ from PyQt5.QtGui import (QColor, QBrush, QPainter, QPainterPath, QPen,
 from PyQt5.QtWidgets import (QApplication, QGraphicsItem, QGraphicsScene,
                                QGraphicsView, QStyle, QWidget, QGridLayout, QDesktopWidget)
 
+class Edge(QGraphicsItem):
+
+    item_type = QGraphicsItem.UserType + 2
+
+    def __init__(self, sourceNode, destNode):
+        super().__init__()
+
+        self._arrow_size = 10.0
+        self._source_point = QPointF()
+        self._dest_point = QPointF()
+        self.setAcceptedMouseButtons(Qt.NoButton)
+        self.source = weakref.ref(sourceNode)
+        self.dest = weakref.ref(destNode)
+        self.source().add_edge(self)
+        self.dest().add_edge(self)
+        self.adjust()
+
+    def item_type(self):
+        return Edge.item_type
+
+    def source_node(self):
+        return self.source()
+
+    def set_source_node(self, node):
+        self.source = weakref.ref(node)
+        self.adjust()
+
+    def dest_node(self):
+        return self.dest()
+
+    def set_dest_node(self, node):
+        self.dest = weakref.ref(node)
+        self.adjust()
+
+    def adjust(self):
+        if not self.source() or not self.dest():
+            return
+
+        line = QLineF(self.mapFromItem(self.source(), 0, 0),
+                      self.mapFromItem(self.dest(), 0, 0))
+        length = line.length()
+
+        if length == 0.0:
+            return
+
+        edge_offset = QPointF((line.dx() * 10) / length, (line.dy() * 10) / length)
+
+        self.prepareGeometryChange()
+        self._source_point = line.p1() + edge_offset
+        self._dest_point = line.p2() - edge_offset
+
+    def boundingRect(self):
+        if not self.source() or not self.dest():
+            return QRectF()
+
+        pen_width = 1
+        extra = (pen_width + self._arrow_size) / 2.0
+
+        width = self._dest_point.x() - self._source_point.x()
+        height = self._dest_point.y() - self._source_point.y()
+        rect = QRectF(self._source_point, QSizeF(width, height))
+        return rect.normalized().adjusted(-extra, -extra, extra, extra)
+
+    def paint(self, painter, option, widget):
+        if not self.source() or not self.dest():
+            return
+
+        # Draw the line itself.
+        line = QLineF(self._source_point, self._dest_point)
+
+        if line.length() == 0.0:
+            return
+
+        painter.setPen(QPen(Qt.black, 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        painter.drawLine(line)
+
+        # Draw the arrows if there's enough room.
+        # angle = math.acos(line.dx() / line.length())
+        # if line.dy() >= 0:
+        #     angle = 2 * math.pi - angle
+
+        # arrow_head1 = QPointF(math.sin(angle + math.pi / 3) * self._arrow_size,
+        #                       math.cos(angle + math.pi / 3) * self._arrow_size)
+        # source_arrow_p1 = self._source_point + arrow_head1
+        # arrow_head2 = QPointF(math.sin(angle + math.pi - math.pi / 3) * self._arrow_size,
+        #                       math.cos(angle + math.pi - math.pi / 3) * self._arrow_size)
+        # source_arrow_p2 = self._source_point + arrow_head2
+
+        # arrow_head1 = QPointF(math.sin(angle - math.pi / 3) * self._arrow_size,
+        #                       math.cos(angle - math.pi / 3) * self._arrow_size)
+        # dest_arrow_p1 = self._dest_point + arrow_head1
+        # arrow_head2 = QPointF(math.sin(angle - math.pi + math.pi / 3) * self._arrow_size,
+        #                       math.cos(angle - math.pi + math.pi / 3) * self._arrow_size)
+        # dest_arrow_p2 = self._dest_point + arrow_head2
+
+        # painter.setBrush(Qt.black)
+        # painter.drawPolygon(QPolygonF([line.p1(), source_arrow_p1, source_arrow_p2]))
+        # painter.drawPolygon(QPolygonF([line.p2(), dest_arrow_p1, dest_arrow_p2]))
+
+
 class Node(QGraphicsItem):
     item_type = QGraphicsItem.UserType + 1
 
@@ -17,7 +117,7 @@ class Node(QGraphicsItem):
         super().__init__()
 
         self.name = name
-        self.graph = weakref.ref(Ui_MainWindow)
+        # self.graph = weakref.ref(Ui_MainWindow)
         self._edge_list = []
         self._new_pos = QPointF()
         self.setFlag(QGraphicsItem.ItemIsMovable)
@@ -31,6 +131,68 @@ class Node(QGraphicsItem):
         adjust = 2.0
         return QRectF(-10 - adjust, -10 - adjust,
                              23 + adjust, 23 + adjust)
+
+    def add_edge(self, edge):
+        self._edge_list.append(weakref.ref(edge))
+        edge.adjust()
+
+    def edges(self):
+        return self._edge_list
+
+    def calculate_forces(self):
+        if not self.scene() or self.scene().mouseGrabberItem() is self:
+            self._new_pos = self.pos()
+            return
+
+        # Sum up all forces pushing this item away.
+        xvel = 0.0
+        yvel = 0.0
+        for item in self.scene().items():
+            if not isinstance(item, Node):
+                continue
+
+            line = QLineF(self.mapFromItem(item, 0, 0), QPointF(0, 0))
+            dx = line.dx()
+            dy = line.dy()
+            l = 2.0 * (dx * dx + dy * dy)
+            if l > 0:
+                xvel += (dx * 150.0) / l
+                yvel += (dy * 150.0) / l
+
+        # Now subtract all forces pulling items together.
+        weight = (len(self._edge_list) + 1) * 10.0
+        for edge in self._edge_list:
+            if edge().source_node() is self:
+                pos = self.mapFromItem(edge().dest_node(), 0, 0)
+            else:
+                pos = self.mapFromItem(edge().source_node(), 0, 0)
+            xvel += pos.x() / weight
+            yvel += pos.y() / weight
+
+        if qAbs(xvel) < 0.1 and qAbs(yvel) < 0.1:
+            xvel = yvel = 0.0
+
+        scene_rect = self.scene().sceneRect()
+        self._new_pos = self.pos() + QPointF(xvel, yvel)
+        self._new_pos.setX(min(max(self._new_pos.x(), scene_rect.left() + 10),
+                               scene_rect.right() - 10))
+        self._new_pos.setY(min(max(self._new_pos.y(), scene_rect.top() + 10),
+                               scene_rect.bottom() - 10))
+    
+    def advance(self):
+        if self._new_pos == self.pos():
+            return False
+
+        self.setPos(self._new_pos)
+        return True
+
+    def itemChange(self, change, value):
+        if change == QGraphicsItem.ItemPositionChange:
+            for edge in self._edge_list:
+                edge().adjust()
+            # self.item_moved()
+
+        return QGraphicsItem.itemChange(self, change, value)
 
     def paint(self, painter, option, widget):
         painter.setPen(Qt.NoPen)
@@ -68,6 +230,7 @@ class Node(QGraphicsItem):
         if newItem and reason == Qt.MouseFocusReason:
             print('item {} clicked!'.format(newItem))
 
+
 class ItemClickableGraphicsScene(QGraphicsScene):
     itemClicked = pyqtSignal(QGraphicsItem)
 
@@ -77,6 +240,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self._node_list = []
         self.current_number_nodes = 0
+        self.mode = None
+        self.pairNode = []
         uic.loadUi('main.ui', self)
 
         # ẩn phần dư của main windown chỉ để hiện background
@@ -91,9 +256,16 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         #Find Children
         self.graphicsView: QtWidgets.QGraphicsView = self.findChild(QtWidgets.QGraphicsView, 'graphicsView')
+        # self.graphicsView.setEnabled(0)
         # self.graphicsView.setItemIndexMethod(QGraphicsScene.NoIndex)
+        self.btn_1: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_1')
+        self.btn_2: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_2')
+
+        self.btn_1.clicked.connect(lambda: self.addNode())
+        self.btn_2.clicked.connect(lambda: self.addEdge())
+
         self.create_ui()
-        
+
         self.show()
 
     def create_ui(self):
@@ -124,22 +296,65 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # print(rw)
         x, y = int(p.x()), int(p.y())
         # print(x, y)
-        if self.graphicsView.x <= x <= self.graphicsView.x + self.graphicsView.width and self.graphicsView.y <= y <= self.graphicsView.height:
-            node = Node(self.graphicsView, self.current_number_nodes)
-            node.setPos(x, y)
-            self._node_list.append(node)
-            self.scene.addItem(node)
-            self.current_number_nodes += 1
-        else:
-            print("Out of view!")
+        if self.mode == 'addNode':
+            if self.graphicsView.x <= x <= self.graphicsView.x + self.graphicsView.width and self.graphicsView.y <= y <= self.graphicsView.height:
+                node = Node(self.graphicsView, self.current_number_nodes)
+                node.setPos(x, y)
+                self._node_list.append(node)
+                self.scene.addItem(node)
+                self.btn_1.setEnabled(1)
+                self.btn_2.setEnabled(1)
+                self.current_number_nodes += 1
+            else:
+                print("Out of view!")
+        if self.mode == 'addEdge':
+        #     # print(self.pairNode)
+            if len(self.pairNode) == 2:
+                self.scene.addItem(Edge(self.pairNode[0], self.pairNode[1]))
+                self.btn_1.setEnabled(1)
+                self.btn_2.setEnabled(1)
+                self.pairNode = []
+            
+            # print(self.pairNode)
+
+        # self.mode = None
         # print(self._node_list)
         # for item in self._node_list:
         #     # item.focusItemChanged.connect(self.focusChanged)
         #     self.rect_item = Node
         super().mousePressEvent(event)
 
+
     def itemClicked(self, item):
-        print('Node {} clicked!'.format(item.name))
+        # print('Node {} clicked!'.format(item.name))
+        # print(item._edge_list)
+
+        if len(self.pairNode) <= 2 and self.mode == 'addEdge':
+            self.pairNode.append(item)
+        # # for i in self.pairNode: 
+        # # print(self.pairNode)
+        # if len(self.pairNode) == 2:
+        #     current_source_node = self.pairNode[0]
+        #     current_des_node = self.pairNode[1]
+        if len(self.pairNode) > 2:
+                self.pairNode = []
+        # print(self.mode)
+        print(self.pairNode)
+        # print(item._edge_list)
+
+    def addNode(self):
+        self.mode = 'addNode'
+        self.btn_1.setEnabled(0)
+        self.btn_2.setEnabled(0)
+
+    def addEdge(self):
+        self.mode = 'addEdge'
+        self.btn_1.setEnabled(0)
+        self.btn_2.setEnabled(0)
+
+    def item_moved(self):
+        if not self.graphicsView._timer_id:
+            self.graphicsView._timer_id = self.startTimer(1000 / 25)
 
 
 if __name__ == "__main__":
