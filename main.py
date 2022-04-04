@@ -4,7 +4,7 @@ import math
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import (QLineF, QPointF, QRandomGenerator, QRectF, QSizeF,
-                            Qt, qAbs)
+                            Qt, qAbs, pyqtSignal, QRect)
 from PyQt5.QtGui import (QColor, QBrush, QPainter, QPainterPath, QPen,
                            QPolygonF, QRadialGradient)
 from PyQt5.QtWidgets import (QApplication, QGraphicsItem, QGraphicsScene,
@@ -13,14 +13,17 @@ from PyQt5.QtWidgets import (QApplication, QGraphicsItem, QGraphicsScene,
 class Node(QGraphicsItem):
     item_type = QGraphicsItem.UserType + 1
 
-    def __init__(self, Ui_MainWindow):
+    def __init__(self, Ui_MainWindow, name=0):
         super().__init__()
 
+        self.name = name
         self.graph = weakref.ref(Ui_MainWindow)
         self._edge_list = []
         self._new_pos = QPointF()
         self.setFlag(QGraphicsItem.ItemIsMovable)
+        self.setFlag(QGraphicsItem.ItemIsSelectable)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
+        self.setFlag(QGraphicsItem.ItemIsFocusable)
         self.setCacheMode(self.DeviceCoordinateCache)
         self.setZValue(-1)
 
@@ -32,7 +35,8 @@ class Node(QGraphicsItem):
     def paint(self, painter, option, widget):
         painter.setPen(Qt.NoPen)
         painter.setBrush(Qt.darkGray)
-        painter.drawEllipse(-7, -7, 20, 20)
+        rect = QRect(-7, -7, 20, 20)
+        painter.drawEllipse(rect)
 
         gradient = QRadialGradient(-3, -3, 10)
         if option.state & QStyle.State_Sunken:
@@ -47,19 +51,32 @@ class Node(QGraphicsItem):
         painter.setBrush(QBrush(gradient))
         painter.setPen(QPen(Qt.black, 0))
         painter.drawEllipse(-10, -10, 20, 20)
+        painter.drawText(rect, Qt.AlignCenter, str(self.name))
 
-    # def mousePressEvent(self, event):
-    #     self.update()
-    #     QGraphicsItem.mousePressEvent(self, event)
+    def mousePressEvent(self, event):
+        # self.update()
+        # QGraphicsItem.mousePressEvent(self, event)
+        super(Node, self).mousePressEvent(event)
+        if event.button() == Qt.LeftButton:
+            self.scene().itemClicked.emit(self)
 
-    # def mouseReleaseEvent(self, event):
-    #     self.update()
-    #     QGraphicsItem.mouseReleaseEvent(self, event)
+    def mouseReleaseEvent(self, event):
+        self.update()
+        QGraphicsItem.mouseReleaseEvent(self, event)
+
+    def focusItemChanged(self, newItem, oldItem, reason):
+        if newItem and reason == Qt.MouseFocusReason:
+            print('item {} clicked!'.format(newItem))
+
+class ItemClickableGraphicsScene(QGraphicsScene):
+    itemClicked = pyqtSignal(QGraphicsItem)
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self._node_list = []
+        self.current_number_nodes = 0
         uic.loadUi('main.ui', self)
 
         # ẩn phần dư của main windown chỉ để hiện background
@@ -81,8 +98,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def create_ui(self):
         self.graphicsView._timer_id = 0
-        self.scene = QGraphicsScene(self)
+        self.scene = ItemClickableGraphicsScene(self)
+        self.scene.itemClicked.connect(self.itemClicked)
         self.scene.setItemIndexMethod(QGraphicsScene.NoIndex)
+        # self.scene.focusItemChanged.connect(self.focusChanged)
 
         self.graphicsView.x = self.graphicsView.x()
         self.graphicsView.y = self.graphicsView.y()
@@ -104,14 +123,23 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # rw = self.graphicsView.window().mapFromGlobal(gp) # relative to window
         # print(rw)
         x, y = int(p.x()), int(p.y())
-        print(x, y)
+        # print(x, y)
         if self.graphicsView.x <= x <= self.graphicsView.x + self.graphicsView.width and self.graphicsView.y <= y <= self.graphicsView.height:
-            node = Node(self.graphicsView)
+            node = Node(self.graphicsView, self.current_number_nodes)
             node.setPos(x, y)
+            self._node_list.append(node)
             self.scene.addItem(node)
+            self.current_number_nodes += 1
         else:
             print("Out of view!")
+        # print(self._node_list)
+        # for item in self._node_list:
+        #     # item.focusItemChanged.connect(self.focusChanged)
+        #     self.rect_item = Node
         super().mousePressEvent(event)
+
+    def itemClicked(self, item):
+        print('Node {} clicked!'.format(item.name))
 
 
 if __name__ == "__main__":
