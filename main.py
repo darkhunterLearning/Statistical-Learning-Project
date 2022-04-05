@@ -260,10 +260,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # self.graphicsView.setItemIndexMethod(QGraphicsScene.NoIndex)
         self.btn_1: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_1')
         self.btn_2: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_2')
+        self.btn_3: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_3')
+        self.btn_4: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_4')
 
         self.btn_1.clicked.connect(lambda: self.addNode())
         self.btn_2.clicked.connect(lambda: self.addEdge())
-
+        self.btn_3.clicked.connect(lambda: self.delNode())
         self.create_ui()
 
         self.show()
@@ -326,18 +328,21 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     def itemClicked(self, item):
+        if self.mode == 'delNode':
+            self.scene.removeItem(item)
+            self._node_list.remove(item)
         # print('Node {} clicked!'.format(item.name))
         # print(item._edge_list)
-
-        if len(self.pairNode) <= 2 and self.mode == 'addEdge':
-            self.pairNode.append(item)
-        # # for i in self.pairNode: 
-        # # print(self.pairNode)
-        # if len(self.pairNode) == 2:
-        #     current_source_node = self.pairNode[0]
-        #     current_des_node = self.pairNode[1]
-        if len(self.pairNode) > 2:
-                self.pairNode = []
+        if self.mode == 'addEdge':
+            if len(self.pairNode) <= 2:
+                self.pairNode.append(item)
+            # # for i in self.pairNode: 
+            # # print(self.pairNode)
+            # if len(self.pairNode) == 2:
+            #     current_source_node = self.pairNode[0]
+            #     current_des_node = self.pairNode[1]
+            if len(self.pairNode) > 2:
+                    self.pairNode = []
         # print(self.mode)
         print(self.pairNode)
         # print(item._edge_list)
@@ -351,6 +356,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.mode = 'addEdge'
         self.btn_1.setEnabled(0)
         self.btn_2.setEnabled(0)
+
+    def delNode(self):
+        self.mode = 'delNode'
 
     def item_moved(self):
         if not self.graphicsView._timer_id:
