@@ -20,7 +20,13 @@ class Edge(QGraphicsItem):
         self._arrow_size = 10.0
         self._source_point = QPointF()
         self._dest_point = QPointF()
-        self.setAcceptedMouseButtons(Qt.NoButton)
+        # self.setAcceptedMouseButtons(Qt.NoButton)
+        # self.setFlag(QGraphicsItem.ItemIsMovable)
+        self.setFlag(QGraphicsItem.ItemIsSelectable)
+        # self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
+        self.setFlag(QGraphicsItem.ItemIsFocusable)
+        self.setCacheMode(self.DeviceCoordinateCache)
+        # self.setZValue(-1)
         self.source = weakref.ref(sourceNode)
         self.dest = weakref.ref(destNode)
         self.source().add_edge(self)
@@ -65,7 +71,7 @@ class Edge(QGraphicsItem):
         if not self.source() or not self.dest():
             return QRectF()
 
-        pen_width = 1
+        pen_width = 3
         extra = (pen_width + self._arrow_size) / 2.0
 
         width = self._dest_point.x() - self._source_point.x()
@@ -83,7 +89,7 @@ class Edge(QGraphicsItem):
         if line.length() == 0.0:
             return
 
-        painter.setPen(QPen(Qt.black, 1, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        painter.setPen(QPen(Qt.black, 3, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
         painter.drawLine(line)
 
         # Draw the arrows if there's enough room.
@@ -108,6 +114,21 @@ class Edge(QGraphicsItem):
         # painter.setBrush(Qt.black)
         # painter.drawPolygon(QPolygonF([line.p1(), source_arrow_p1, source_arrow_p2]))
         # painter.drawPolygon(QPolygonF([line.p2(), dest_arrow_p1, dest_arrow_p2]))
+
+    def mousePressEvent(self, event):
+        self.update()
+        # QGraphicsItem.mousePressEvent(self, event)
+        super(Edge, self).mousePressEvent(event)
+        if event.button() == Qt.LeftButton:
+            self.scene().itemClicked.emit(self)
+
+    def mouseReleaseEvent(self, event):
+        self.update()
+        QGraphicsItem.mouseReleaseEvent(self, event)
+
+    def focusItemChanged(self, newItem, oldItem, reason):
+        if newItem and reason == Qt.MouseFocusReason:
+            print('item {} clicked!'.format(newItem))
 
 
 class Node(QGraphicsItem):
@@ -216,7 +237,7 @@ class Node(QGraphicsItem):
         painter.drawText(rect, Qt.AlignCenter, str(self.name))
 
     def mousePressEvent(self, event):
-        # self.update()
+        self.update()
         # QGraphicsItem.mousePressEvent(self, event)
         super(Node, self).mousePressEvent(event)
         if event.button() == Qt.LeftButton:
@@ -239,6 +260,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         super().__init__()
 
         self._node_list = []
+        # self._edge_list = []
         self.current_number_nodes = 0
         self.mode = None
         self.pairNode = []
@@ -266,6 +288,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_1.clicked.connect(lambda: self.addNode())
         self.btn_2.clicked.connect(lambda: self.addEdge())
         self.btn_3.clicked.connect(lambda: self.delNode())
+        self.btn_4.clicked.connect(lambda: self.delEdge())
         self.create_ui()
 
         self.show()
@@ -274,6 +297,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.graphicsView._timer_id = 0
         self.scene = ItemClickableGraphicsScene(self)
         self.scene.itemClicked.connect(self.itemClicked)
+        # self.scene.itemClicked.connect(self.edgeClicked)
         self.scene.setItemIndexMethod(QGraphicsScene.NoIndex)
         # self.scene.focusItemChanged.connect(self.focusChanged)
 
@@ -306,18 +330,23 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.scene.addItem(node)
                 self.btn_1.setEnabled(1)
                 self.btn_2.setEnabled(1)
+                self.btn_3.setEnabled(1)
+                self.btn_4.setEnabled(1)
                 self.current_number_nodes += 1
             else:
                 print("Out of view!")
         if self.mode == 'addEdge':
-        #     # print(self.pairNode)
+            # print(self.pairNode)
             if len(self.pairNode) == 2:
                 self.scene.addItem(Edge(self.pairNode[0], self.pairNode[1]))
+                # self._edge_list.append(Edge(self.pairNode[0], self.pairNode[1]))
                 self.btn_1.setEnabled(1)
                 self.btn_2.setEnabled(1)
+                self.btn_3.setEnabled(1)
+                self.btn_4.setEnabled(1)
                 self.pairNode = []
             
-            # print(self.pairNode)
+        # print(self.pairNode)
 
         # self.mode = None
         # print(self._node_list)
@@ -328,12 +357,34 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     def itemClicked(self, item):
-        if self.mode == 'delNode':
+        self.update()
+        # if item in self._node_list:
+        #     print('Node {} clicked!'.format(item))
+        # else:
+        #     print('Edge {} clicked!'.format(item))
+            
+        if self.mode == 'delNode' and item in self._node_list:
             self.scene.removeItem(item)
             self._node_list.remove(item)
-        # print('Node {} clicked!'.format(item.name))
-        # print(item._edge_list)
-        if self.mode == 'addEdge':
+            self.scene.update()
+            # print(item._edge_list)
+            self.mode = 'delEdge'
+            self.btn_1.setEnabled(1)
+            self.btn_2.setEnabled(1)
+            self.btn_3.setEnabled(1)
+            self.btn_4.setEnabled(1)
+
+
+        if self.mode == 'delEdge' and item not in self._node_list:
+            self.scene.removeItem(item)
+            self.scene.update()
+            self.btn_1.setEnabled(1)
+            self.btn_2.setEnabled(1)
+            self.btn_3.setEnabled(1)
+            self.btn_4.setEnabled(1)
+            # self._edge_list.remove(item)
+
+        if self.mode == 'addEdge' and item in self._node_list:
             if len(self.pairNode) <= 2:
                 self.pairNode.append(item)
             # # for i in self.pairNode: 
@@ -343,22 +394,40 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             #     current_des_node = self.pairNode[1]
             if len(self.pairNode) > 2:
                     self.pairNode = []
-        # print(self.mode)
-        print(self.pairNode)
+        # print(self._edge_list)
+        # print(self.pairNode)
         # print(item._edge_list)
+
+    # def edgeClicked(self, item):
+    #     print('Edge {} clicked!'.format(item))
 
     def addNode(self):
         self.mode = 'addNode'
         self.btn_1.setEnabled(0)
         self.btn_2.setEnabled(0)
+        self.btn_3.setEnabled(0)
+        self.btn_4.setEnabled(0)
 
     def addEdge(self):
         self.mode = 'addEdge'
         self.btn_1.setEnabled(0)
         self.btn_2.setEnabled(0)
+        self.btn_3.setEnabled(0)
+        self.btn_4.setEnabled(0)
 
     def delNode(self):
         self.mode = 'delNode'
+        self.btn_1.setEnabled(0)
+        self.btn_2.setEnabled(0)
+        self.btn_3.setEnabled(0)
+        self.btn_4.setEnabled(0)
+
+    def delEdge(self):
+        self.mode = 'delEdge'
+        self.btn_1.setEnabled(0)
+        self.btn_2.setEnabled(0)
+        self.btn_3.setEnabled(0)
+        self.btn_4.setEnabled(0)
 
     def item_moved(self):
         if not self.graphicsView._timer_id:
