@@ -116,7 +116,7 @@ class Edge(QGraphicsItem):
         # painter.drawPolygon(QPolygonF([line.p2(), dest_arrow_p1, dest_arrow_p2]))
 
     def mousePressEvent(self, event):
-        self.update()
+        # self.update()
         # QGraphicsItem.mousePressEvent(self, event)
         super(Edge, self).mousePressEvent(event)
         if event.button() == Qt.LeftButton:
@@ -237,14 +237,14 @@ class Node(QGraphicsItem):
         painter.drawText(rect, Qt.AlignCenter, str(self.name))
 
     def mousePressEvent(self, event):
-        self.update()
+        # self.update()
         # QGraphicsItem.mousePressEvent(self, event)
         super(Node, self).mousePressEvent(event)
         if event.button() == Qt.LeftButton:
             self.scene().itemClicked.emit(self)
 
     def mouseReleaseEvent(self, event):
-        self.update()
+        # self.update()
         QGraphicsItem.mouseReleaseEvent(self, event)
 
     def focusItemChanged(self, newItem, oldItem, reason):
@@ -357,7 +357,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
     def itemClicked(self, item):
-        self.update()
+        # self.update()
         # if item in self._node_list:
         #     print('Node {} clicked!'.format(item))
         # else:
@@ -368,7 +368,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self._node_list.remove(item)
             self.scene.update()
             # print(item._edge_list)
-            self.mode = 'delEdge'
+            # self.mode = 'delEdge'
             self.btn_1.setEnabled(1)
             self.btn_2.setEnabled(1)
             self.btn_3.setEnabled(1)
