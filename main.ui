@@ -17,10 +17,10 @@
    <widget class="QGraphicsView" name="graphicsView">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>70</y>
-      <width>371</width>
-      <height>321</height>
+      <x>290</x>
+      <y>20</y>
+      <width>391</width>
+      <height>491</height>
      </rect>
     </property>
     <property name="mouseTracking">
@@ -78,6 +78,48 @@
     <property name="text">
      <string>Delete Edge</string>
     </property>
+   </widget>
+   <widget class="QGroupBox" name="grb_graph_type">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>40</y>
+      <width>120</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Type:</string>
+    </property>
+    <widget class="QRadioButton" name="rbtn_undirected">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>82</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Undirected</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="rbtn_directed">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>82</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Directed</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

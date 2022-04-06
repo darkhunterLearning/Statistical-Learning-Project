@@ -8,18 +8,19 @@ from PyQt5.QtCore import (QLineF, QPointF, QRandomGenerator, QRectF, QSizeF,
 from PyQt5.QtGui import (QColor, QBrush, QPainter, QPainterPath, QPen,
                            QPolygonF, QRadialGradient)
 from PyQt5.QtWidgets import (QApplication, QGraphicsItem, QGraphicsScene,
-                               QGraphicsView, QStyle, QWidget, QGridLayout, QDesktopWidget)
+                               QGraphicsView, QStyle, QWidget, QGridLayout, QDesktopWidget, QGraphicsLineItem)
 
-class Edge(QGraphicsItem):
+class Edge(QGraphicsLineItem):
 
     item_type = QGraphicsItem.UserType + 2
 
     def __init__(self, sourceNode, destNode):
         super().__init__()
 
-        self._arrow_size = 10.0
+        self._arrow_size = 5
         self._source_point = QPointF()
         self._dest_point = QPointF()
+        self.height = 6
         # self.setAcceptedMouseButtons(Qt.NoButton)
         # self.setFlag(QGraphicsItem.ItemIsMovable)
         self.setFlag(QGraphicsItem.ItemIsSelectable)
@@ -79,18 +80,87 @@ class Edge(QGraphicsItem):
         rect = QRectF(self._source_point, QSizeF(width, height))
         return rect.normalized().adjusted(-extra, -extra, extra, extra)
 
+    def calculate(self):
+        # print(self._source_point.x(), self._source_point.y())
+        # print(self._dest_point.x(), self._dest_point.y())
+
+         # We first calculate the distance covered by our edge
+        dX = self._dest_point.x() - self._source_point.x()
+        dY = self._dest_point.y() - self._source_point.y()
+        distance = math.sqrt(pow(dX, 2) + pow(dY, 2))
+        # print("dX, dY, distance:")
+        # print(dX, dY, distance)
+
+        # Then we create a straight line from our start point to our end point and shorten its length
+        newLine = QLineF(self._source_point, self._dest_point)
+        newLine.setLength(newLine.length() - 15);
+
+        # Then we calculate the coordinates of our midpoint
+        mX = (self._dest_point.x() + newLine.p2().x()) / 2
+        mY = (self._dest_point.y() + newLine.p2().y()) / 2
+
+        # print("mX, mY:")
+        # print(mX, mY)
+
+        # And the coordinates of our control point. We use the edges height as a scaling factor
+        # to determine the 'height' of the control point on a line perpendicular to our 
+        # original line (newLine).
+        cX = self.height * (-1 * (dY / distance)) + mX
+        cY = self.height * (dX / distance) + mY
+        self.controlPoint = QPointF(cX, cY)
+        # print('controlPoint')
+        # print(self.controlPoint)
+
+        # We create another line from our control point to our end point and shorten its length
+        self.ghostLine = QLineF(self.controlPoint, self._dest_point)
+        self.ghostLine.setLength(self.ghostLine.length() - 10)
+        # print('ghostLine')
+        # print(self.ghostLine)
+
+        # Then we do the calculations we need to create our arrowhead
+        angle = math.acos(self.ghostLine.dx() / self.ghostLine.length())
+        # print(angle)
+        if self.ghostLine.dy() >= 0:
+            angle = 2 * math.pi - angle
+
+        self.arrowP1 = self.ghostLine.p2() - QPointF(math.sin(angle + math.pi /3) * self._arrow_size, 
+                                           math.cos(angle + math.pi / 3) * self._arrow_size)
+        self.arrowP2 = self.ghostLine.p2() - QPointF(math.sin(angle + math.pi - math.pi / 3) * self._arrow_size, 
+                                           math.cos(angle + math.pi - math.pi / 3) * self._arrow_size)
+
+        # print('arrowP1, arrowP2:')
+        # print(self.arrowP1, self.arrowP2)
+
+        self.setLine(newLine)
+        self.prepareGeometryChange()
+
+
     def paint(self, painter, option, widget):
         if not self.source() or not self.dest():
             return
 
+        self.calculate()
+        painter.setPen(QPen(Qt.black, 5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+
+        path = QPainterPath()
+        path.moveTo(self._source_point)
+        path.quadTo(self.controlPoint, self.ghostLine.p2())
+        strokePath = path
+
+
+        # print(path)
+        # print(self._source_point)
+        # print(self._dest_point)
         # Draw the line itself.
-        line = QLineF(self._source_point, self._dest_point)
+        # line = QLineF(self._source_point, self._dest_point)
 
-        if line.length() == 0.0:
-            return
+        # if line.length() == 0.0:
+        #     return
 
-        painter.setPen(QPen(Qt.black, 3, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
-        painter.drawLine(line)
+        
+        # painter.drawLine(line)
+
+        
 
         # Draw the arrows if there's enough room.
         # angle = math.acos(line.dx() / line.length())
@@ -112,6 +182,8 @@ class Edge(QGraphicsItem):
         # dest_arrow_p2 = self._dest_point + arrow_head2
 
         # painter.setBrush(Qt.black)
+        painter.drawPolygon(QPolygonF([self.ghostLine.p2(), self.arrowP1, self.arrowP2]))
+        painter.strokePath(path, QPen(Qt.black))
         # painter.drawPolygon(QPolygonF([line.p1(), source_arrow_p1, source_arrow_p2]))
         # painter.drawPolygon(QPolygonF([line.p2(), dest_arrow_p1, dest_arrow_p2]))
 
@@ -280,6 +352,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.graphicsView: QtWidgets.QGraphicsView = self.findChild(QtWidgets.QGraphicsView, 'graphicsView')
         # self.graphicsView.setEnabled(0)
         # self.graphicsView.setItemIndexMethod(QGraphicsScene.NoIndex)
+
+        self.grb_graph_type: QtWidgets.QGroupBox = self.findChild(QtWidgets.QGroupBox, 'grb_graph_type')
+
+        self.rbtn_undirected: QtWidgets.QRadioButton = self.findChild(QtWidgets.QRadioButton, 'rbtn_undirected')
+        self.rbtn_directed: QtWidgets.QRadioButton = self.findChild(QtWidgets.QRadioButton, 'rbtn_directed')
+
         self.btn_1: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_1')
         self.btn_2: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_2')
         self.btn_3: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_3')
