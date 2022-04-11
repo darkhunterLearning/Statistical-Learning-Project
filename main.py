@@ -16,6 +16,7 @@ class UndirectedEdge(QGraphicsItem):
 
     def __init__(self, sourceNode, destNode):
         super().__init__()
+        self.name = [sourceNode.name, destNode.name]
         self._arrow_size = 5
         self._source_point = QPointF()
         self._dest_point = QPointF()
@@ -404,6 +405,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.undirected_node_list = []
         self.directed_node_list = []
         self.graph_type = 'Undirected'
+        self.adj_matrix = []
+        self.edges = []
         self.undirected_current_number_nodes = 0
         self.directed_current_number_nodes = 0
         self.mode = None
@@ -439,12 +442,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_3: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_3')
         self.btn_4: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_4')
         self.btn_5: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_5')
+        self.btn_6: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_6')
 
         self.btn_1.clicked.connect(lambda: self.addNode())
         self.btn_2.clicked.connect(lambda: self.addEdge())
         self.btn_3.clicked.connect(lambda: self.delNode())
         self.btn_4.clicked.connect(lambda: self.delEdge())
         self.btn_5.clicked.connect(lambda: self.setEdgeW())
+        self.btn_6.clicked.connect(lambda: self.showMatrix())
 
         self.rbtn_undirected.toggled.connect(self.graphType)
         # self.rbtn_directed.toggled.connect(self.graphType)
@@ -504,14 +509,27 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 if self.undirectedView.x <= x <= self.undirectedView.x + self.undirectedView.width and self.undirectedView.y <= y <= self.undirectedView.y + self.undirectedView.height:
                     node = Node(self.undirectedView, self.undirected_current_number_nodes)
                     node.setPos(x, y)
+
                     self.undirected_node_list.append(node)
                     self.scene_1.addItem(node)
+
                     self.btn_1.setEnabled(1)
                     self.btn_2.setEnabled(1)
                     self.btn_3.setEnabled(1)
                     self.btn_4.setEnabled(1)
                     self.btn_5.setEnabled(1)
+
                     self.undirected_current_number_nodes += 1
+
+                    self.adj_matrix = []
+
+                    for i in range(self.undirected_current_number_nodes):
+                        self.adj_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
+                    # change adj_matrix after this based on self.edges
+                    for x, y in self.edges:
+                       self.adj_matrix[int(x)][int(y)] = 1
+                       self.adj_matrix[int(y)][int(x)] = 1
+
                     self.mode = None
                 else:
                     print("Out of view!")
@@ -519,6 +537,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 # print(self.pairNode)
                 if len(self.undirected_pairNode) == 2:
                     self.scene_1.addItem(UndirectedEdge(self.undirected_pairNode[0], self.undirected_pairNode[1]))
+                    self.edges.append([self.undirected_pairNode[0].name, self.undirected_pairNode[1].name])
+                    
+                    self.adj_matrix = []
+
+                    for i in range(self.undirected_current_number_nodes):
+                        self.adj_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
+                    # change adj_matrix after this based on self.edges
+                    for x, y in self.edges:
+                       self.adj_matrix[int(x)][int(y)] = 1
+                       self.adj_matrix[int(y)][int(x)] = 1
+
                     self.btn_1.setEnabled(1)
                     self.btn_2.setEnabled(1)
                     self.btn_3.setEnabled(1)
@@ -548,6 +577,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     self.btn_4.setEnabled(1)
                     self.btn_5.setEnabled(1)
                     self.directed_current_number_nodes += 1
+                    self.adj_matrix = []
                     self.mode = None
                 else:
                     print("Out of view!")
@@ -573,16 +603,35 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def itemClicked(self, item):
         # if item in self.undirected_node_list:
-        #     print('Node {} clicked!'.format(item))
+        #     print('Node {} clicked!'.format(item.name))
         # else:
-        #     print('Edge {} clicked!'.format(item))
+        #     print('Edge {} clicked!'.format(item.name))
         if self.graph_type == 'Undirected':
             if self.mode == 'delNode' and item in self.undirected_node_list:
+
+                # for edge in self.edges:
+                #     print(type(edge))
+                #     if item.name in edge:
+                #         self.edges.remove(edge) 
+                self.edges = [edge for edge in self.edges if item.name not in edge]
+
+
                 self.scene_1.removeItem(item)
                 self.undirected_node_list.remove(item)
+                self.undirected_current_number_nodes -= 1
+
                 self.scene_1.update()
                 # print(item._edge_list)
                 # self.mode = 'delEdge'
+
+                self.adj_matrix = []
+                for i in range(self.undirected_current_number_nodes):
+                    self.adj_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
+                # change adj_matrix after this based on self.edges
+                for x, y in self.edges:
+                       self.adj_matrix[int(x)][int(y)] = 1
+                       self.adj_matrix[int(y)][int(x)] = 1
+
                 self.btn_1.setEnabled(1)
                 self.btn_2.setEnabled(1)
                 self.btn_3.setEnabled(1)
@@ -592,6 +641,18 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 
             if self.mode == 'delEdge' and item  not in self.undirected_node_list:
+
+                if item.name in self.edges:
+                     self.edges.remove(item.name)
+
+                self.adj_matrix = []
+                for i in range(self.undirected_current_number_nodes):
+                    self.adj_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
+                # change adj_matrix after this based on self.edges
+                for x, y in self.edges:
+                       self.adj_matrix[int(x)][int(y)] = 1
+                       self.adj_matrix[int(y)][int(x)] = 1
+
                 self.scene_1.removeItem(item)
                 self.scene_1.update()
                 self.btn_1.setEnabled(1)
@@ -695,6 +756,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_4.setEnabled(0)
         self.btn_5.setEnabled(0)
         self.textbox.setEnabled(1)
+
+    def showMatrix(self):
+        print(self.edges)
+        for m in self.adj_matrix: 
+            print(m)
+
 
     def item_moved(self):
         if not self.graphicsView._timer_id:
