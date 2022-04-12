@@ -1,6 +1,7 @@
 import sys
 import weakref
 import math
+import random
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import (QLineF, QPointF, QRandomGenerator, QRectF, QSizeF,
@@ -21,7 +22,7 @@ class UndirectedEdge(QGraphicsItem):
         self._source_point = QPointF()
         self._dest_point = QPointF()
         self.height = 10
-        self.w = 0
+        self.w = random.randint(1,50)
         # self.setAcceptedMouseButtons(Qt.NoButton)
         # self.setFlag(QGraphicsItem.ItemIsMovable)
         self.setFlag(QGraphicsItem.ItemIsSelectable)
@@ -526,9 +527,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     for i in range(self.undirected_current_number_nodes):
                         self.adj_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
                     # change adj_matrix after this based on self.edges
-                    for x, y in self.edges:
-                       self.adj_matrix[int(x)][int(y)] = 1
-                       self.adj_matrix[int(y)][int(x)] = 1
+                    for x, y, w in self.edges:
+                       self.adj_matrix[int(x)][int(y)] = w
+                       self.adj_matrix[int(y)][int(x)] = w
 
                     self.mode = None
                 else:
@@ -536,17 +537,18 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             if self.mode == 'addEdge':
                 # print(self.pairNode)
                 if len(self.undirected_pairNode) == 2:
-                    self.scene_1.addItem(UndirectedEdge(self.undirected_pairNode[0], self.undirected_pairNode[1]))
-                    self.edges.append([self.undirected_pairNode[0].name, self.undirected_pairNode[1].name])
+                    edge = UndirectedEdge(self.undirected_pairNode[0], self.undirected_pairNode[1])
+                    self.scene_1.addItem(edge)
+                    self.edges.append([self.undirected_pairNode[0].name, self.undirected_pairNode[1].name, edge.w])
                     
                     self.adj_matrix = []
 
                     for i in range(self.undirected_current_number_nodes):
                         self.adj_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
                     # change adj_matrix after this based on self.edges
-                    for x, y in self.edges:
-                       self.adj_matrix[int(x)][int(y)] = 1
-                       self.adj_matrix[int(y)][int(x)] = 1
+                    for x, y, w in self.edges:
+                       self.adj_matrix[int(x)][int(y)] = w
+                       self.adj_matrix[int(y)][int(x)] = w
 
                     self.btn_1.setEnabled(1)
                     self.btn_2.setEnabled(1)
@@ -628,9 +630,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 for i in range(self.undirected_current_number_nodes):
                     self.adj_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
                 # change adj_matrix after this based on self.edges
-                for x, y in self.edges:
-                       self.adj_matrix[int(x)][int(y)] = 1
-                       self.adj_matrix[int(y)][int(x)] = 1
+                for x, y, w in self.edges:
+                       self.adj_matrix[int(x)][int(y)] = w
+                       self.adj_matrix[int(y)][int(x)] = w
 
                 self.btn_1.setEnabled(1)
                 self.btn_2.setEnabled(1)
@@ -642,6 +644,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
             if self.mode == 'delEdge' and item  not in self.undirected_node_list:
 
+                for edge in self.edges:
+                        if item.name[0] == edge[0] and item.name[1] == edge[1]:
+                            self.edges.remove(edge)
+
                 if item.name in self.edges:
                      self.edges.remove(item.name)
 
@@ -649,9 +655,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 for i in range(self.undirected_current_number_nodes):
                     self.adj_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
                 # change adj_matrix after this based on self.edges
-                for x, y in self.edges:
-                       self.adj_matrix[int(x)][int(y)] = 1
-                       self.adj_matrix[int(y)][int(x)] = 1
+                for x, y, w in self.edges:
+                       self.adj_matrix[int(x)][int(y)] = w
+                       self.adj_matrix[int(y)][int(x)] = w
 
                 self.scene_1.removeItem(item)
                 self.scene_1.update()
@@ -674,6 +680,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 try:
                     number = int(number)
                     item.w = number
+                    for edge in self.edges:
+                        if item.name[0] == edge[0] and item.name[1] == edge[1]:
+                            edge[2] = number
+                        
+                    self.adj_matrix[item.name[0]][item.name[1]] = number
+                    self.adj_matrix[item.name[1]][item.name[0]] = number
                 except Exception:
                     QMessageBox.about(self, 'Error','Input can only be a number')
                     pass
