@@ -36,8 +36,8 @@
    <widget class="QPushButton" name="btn_1">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>42</y>
+      <x>30</x>
+      <y>2</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -49,8 +49,8 @@
    <widget class="QPushButton" name="btn_2">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>90</y>
+      <x>30</x>
+      <y>50</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -62,8 +62,8 @@
    <widget class="QPushButton" name="btn_3">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>140</y>
+      <x>30</x>
+      <y>100</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -75,8 +75,8 @@
    <widget class="QPushButton" name="btn_4">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>190</y>
+      <x>30</x>
+      <y>150</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -149,8 +149,8 @@
    <widget class="QPushButton" name="btn_5">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>240</y>
+      <x>30</x>
+      <y>200</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -165,8 +165,8 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>239</y>
+      <x>110</x>
+      <y>199</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -178,8 +178,8 @@
    <widget class="QPushButton" name="btn_6">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>280</y>
+      <x>30</x>
+      <y>240</y>
       <width>71</width>
       <height>31</height>
      </rect>
@@ -235,8 +235,8 @@
    <widget class="QSpinBox" name="spb_source">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>290</y>
+      <x>110</x>
+      <y>250</y>
       <width>42</width>
       <height>22</height>
      </rect>
@@ -245,14 +245,27 @@
    <widget class="QSpinBox" name="spb_des">
     <property name="geometry">
      <rect>
-      <x>170</x>
-      <y>290</y>
+      <x>160</x>
+      <y>250</y>
       <width>42</width>
       <height>22</height>
      </rect>
     </property>
     <property name="minimum">
-     <number>1</number>
+     <number>0</number>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_7">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>280</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Refresh</string>
     </property>
    </widget>
   </widget>

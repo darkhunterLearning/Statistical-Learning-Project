@@ -33,7 +33,7 @@ class UndirectedEdge(QGraphicsItem):
         # self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
         self.setFlag(QGraphicsItem.ItemIsFocusable)
         # self.setCacheMode(self.DeviceCoordinateCache)
-        # self.setZValue(-1)
+        self.setZValue(-1)
         self.source = weakref.ref(sourceNode)
         self.dest = weakref.ref(destNode)
         self.source().add_edge(self)
@@ -78,7 +78,7 @@ class UndirectedEdge(QGraphicsItem):
         if not self.source() or not self.dest():
             return QRectF()
 
-        pen_width = 3
+        pen_width = 1
         extra = (pen_width + self._arrow_size) / 2.0
 
         width = self._dest_point.x() - self._source_point.x()
@@ -94,14 +94,14 @@ class UndirectedEdge(QGraphicsItem):
             color = Qt.black
         if self.status == 1:
             color = Qt.red
-        painter.setPen(QPen(color, 5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        painter.setPen(QPen(color, 4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
 
         dx = abs((self._dest_point.x() + self._source_point.x()) / 2)
         dy = abs((self._dest_point.y() + self._source_point.y()) / 2)
 
         # print(dx, dy)
 
-        painter.setFont(QFont("Arial", 12))
+        painter.setFont(QFont("Arial", 10))
         painter.drawText(dx, dy+20, str(self.w))
 
         line = QLineF(self._source_point, self._dest_point)
@@ -128,10 +128,13 @@ class DirectedEdge(QGraphicsItem):
 
     def __init__(self, sourceNode, destNode):
         super().__init__()
+        self.name = [sourceNode.name, destNode.name]
         self._arrow_size = 5
         self._source_point = QPointF()
         self._dest_point = QPointF()
         self.height = 10
+        self.w = random.randint(1, 20)
+        self.status = 0
         # self.setAcceptedMouseButtons(Qt.NoButton)
         # self.setFlag(QGraphicsItem.ItemIsMovable)
         self.setFlag(QGraphicsItem.ItemIsSelectable)
@@ -183,7 +186,7 @@ class DirectedEdge(QGraphicsItem):
         if not self.source() or not self.dest():
             return QRectF()
 
-        pen_width = 3
+        pen_width = 1
         extra = (pen_width + self._arrow_size) / 2.0
 
         width = self._dest_point.x() - self._source_point.x()
@@ -250,7 +253,12 @@ class DirectedEdge(QGraphicsItem):
         if not self.source() or not self.dest():
             return
 
-        painter.setPen(QPen(Qt.black, 5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        if self.status == 0:
+            color = Qt.black
+        if self.status == 1:
+            color = Qt.red
+
+        painter.setPen(QPen(color, 5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
 
         self.calculate()
         
@@ -259,7 +267,22 @@ class DirectedEdge(QGraphicsItem):
         path.quadTo(self.controlPoint, self.ghostLine.p2())
 
         painter.drawPolygon(QPolygonF([self.ghostLine.p2(), self.arrowP1, self.arrowP2]))
-        painter.strokePath(path, QPen(Qt.black))
+        painter.strokePath(path, QPen(color))
+
+        dx = abs((self._dest_point.x() + self._source_point.x()) / 2)
+        dy = abs((self._dest_point.y() + self._source_point.y()) / 2)
+
+        # print(self._source_point.y())
+        # print(dy)
+
+        painter.setFont(QFont("Arial", 10))
+
+        if self._source_point.x() < dx:
+            painter.drawText(self._source_point.x() + 20, dy, str(self.w))
+            
+        else:
+            painter.drawText(self._source_point.x() - 20, dy, str(self.w))
+            
 
 
     def mousePressEvent(self, event):
@@ -422,14 +445,19 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.undirected_node_list = []
         self.directed_node_list = []
         self.graph_type = 'Undirected'
-        self.adj_matrix = []
-        self.edges = [] # this var is used for storage edge UI
-        self.list_edges = [] # this var is used for storage edge backend
+        self.adj_undirected_matrix = []
+        self.adj_directed_matrix = []
+        self.undirected_edges = [] # this var is used for storage edge UI
+        self.directed_edges = []
+        self.list_undirected_edges = [] # this var is used for storage edge backend
+        self.list_directed_edges = []
         self.undirected_current_number_nodes = 0
         self.directed_current_number_nodes = 0
         self.mode = None
-        self.idx = 0
-        self.frames = []
+        self.undirected_idx = 0
+        self.directed_idx = 0
+        self.undirected_frames = []
+        self.directed_frames = []
         self.undirected_pairNode = []
         self.directed_pairNode = []
         uic.loadUi('main.ui', self)
@@ -466,6 +494,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_4: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_4')
         self.btn_5: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_5')
         self.btn_6: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_6')
+        self.btn_7: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_7')
 
         self.spb_source: QtWidgets.QSpinBox = self.findChild(QtWidgets.QSpinBox, 'spb_source')
         self.spb_des: QtWidgets.QSpinBox = self.findChild(QtWidgets.QSpinBox, 'spb_des')
@@ -476,6 +505,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_4.clicked.connect(lambda: self.delEdge())
         self.btn_5.clicked.connect(lambda: self.setEdgeW())
         self.btn_6.clicked.connect(lambda: self.showMatrix())
+        self.btn_7.clicked.connect(lambda: self.refresh())
 
         self.rbtn_undirected.toggled.connect(self.graphType)
         # self.rbtn_directed.toggled.connect(self.graphType)
@@ -547,14 +577,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
                     self.undirected_current_number_nodes += 1
 
-                    self.adj_matrix = []
+                    self.adj_undirected_matrix = []
 
                     for i in range(self.undirected_current_number_nodes):
-                        self.adj_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
-                    # change adj_matrix after this based on self.edges
-                    for x, y, w in self.edges:
-                       self.adj_matrix[int(x)][int(y)] = w
-                       self.adj_matrix[int(y)][int(x)] = w
+                        self.adj_undirected_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
+                    # change adj_matrix after this based on self.undirected_edges
+                    for x, y, w in self.undirected_edges:
+                       self.adj_undirected_matrix[int(x)][int(y)] = w
+                       self.adj_undirected_matrix[int(y)][int(x)] = w
 
                     self.mode = None
                 else:
@@ -565,20 +595,20 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     edge = UndirectedEdge(self.undirected_pairNode[0], self.undirected_pairNode[1])
                     edge_2 = UndirectedEdge(self.undirected_pairNode[1], self.undirected_pairNode[0])
 
-                    self.list_edges.append(edge)
-                    self.list_edges.append(edge_2)
+                    self.list_undirected_edges.append(edge)
+                    self.list_undirected_edges.append(edge_2)
 
                     self.scene_1.addItem(edge)
-                    self.edges.append([self.undirected_pairNode[0].name, self.undirected_pairNode[1].name, edge.w])
+                    self.undirected_edges.append([self.undirected_pairNode[0].name, self.undirected_pairNode[1].name, edge.w])
                     
-                    self.adj_matrix = []
+                    self.adj_undirected_matrix = []
 
                     for i in range(self.undirected_current_number_nodes):
-                        self.adj_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
-                    # change adj_matrix after this based on self.edges
-                    for x, y, w in self.edges:
-                       self.adj_matrix[int(x)][int(y)] = w
-                       self.adj_matrix[int(y)][int(x)] = w
+                        self.adj_undirected_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
+                    # change adj_matrix after this based on self.undirected_edges
+                    for x, y, w in self.undirected_edges:
+                       self.adj_undirected_matrix[int(x)][int(y)] = w
+                       self.adj_undirected_matrix[int(y)][int(x)] = w
 
                     self.btn_1.setEnabled(1)
                     self.btn_2.setEnabled(1)
@@ -590,33 +620,57 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             
         if self.graph_type == 'Directed':
             p = event.pos() # relative to widget
-            # print(p)
-            # gp = self.graphicsView.mapToGlobal(p) # relative to screen
-            # print(gp)
-            # rw = self.graphicsView.window().mapFromGlobal(gp) # relative to window
-            # print(rw)
             x, y = int(p.x()), int(p.y())
             # print(x, y)
             if self.mode == 'addNode':
                 if self.directedView.x <= x <= self.directedView.x + self.directedView.width and self.directedView.y <= y <= self.directedView.y + self.directedView.height:
                     node = Node(self.directedView, self.directed_current_number_nodes)
                     node.setPos(x, y)
+
                     self.directed_node_list.append(node)
                     self.scene_2.addItem(node)
+
                     self.btn_1.setEnabled(1)
                     self.btn_2.setEnabled(1)
                     self.btn_3.setEnabled(1)
                     self.btn_4.setEnabled(1)
                     self.btn_5.setEnabled(1)
+
                     self.directed_current_number_nodes += 1
-                    self.adj_matrix = []
+                    self.adj_directed_matrix = []
+
+
+                    for i in range(self.directed_current_number_nodes):
+                        self.adj_directed_matrix.append([0 for i in range(self.directed_current_number_nodes)])
+                    # change adj_matrix after this based on self.directed_edges
+                    for x, y, w in self.directed_edges:
+                       self.adj_directed_matrix[int(x)][int(y)] = w
+
+                    # for m in self.adj_directed_matrix:
+                    #     print(m)
+
                     self.mode = None
                 else:
                     print("Out of view!")
             if self.mode == 'addEdge':
                 # print(self.pairNode)
                 if len(self.directed_pairNode) == 2:
-                    self.scene_2.addItem(DirectedEdge(self.directed_pairNode[0], self.directed_pairNode[1]))
+                    edge = DirectedEdge(self.directed_pairNode[0], self.directed_pairNode[1])
+
+                    self.list_directed_edges.append(edge)
+
+                    self.scene_2.addItem(edge)
+
+                    self.directed_edges.append([self.directed_pairNode[0].name, self.directed_pairNode[1].name, edge.w])
+
+                    self.adj_directed_matrix = []
+
+                    for i in range(self.directed_current_number_nodes):
+                        self.adj_directed_matrix.append([0 for i in range(self.directed_current_number_nodes)])
+                    # change adj_matrix after this based on self.directed_edges
+                    for x, y, w in self.directed_edges:
+                       self.adj_directed_matrix[int(x)][int(y)] = w
+
                     self.btn_1.setEnabled(1)
                     self.btn_2.setEnabled(1)
                     self.btn_3.setEnabled(1)
@@ -624,6 +678,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     self.btn_5.setEnabled(1)
                     self.directed_pairNode = []
                     self.mode = None
+
+                    # for m in self.adj_directed_matrix:
+                    #     print(m)
 
         # self.mode = None
         # print(self._node_list)
@@ -638,62 +695,46 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         #     print('Node {} clicked!'.format(item.name))
         # else:
         #     print('Edge {} clicked!'.format(item.name))
+        
         if self.graph_type == 'Undirected':
+            self.scene_1.update()
+            # for m in self.adj_undirected_matrix:
+            #     print(m)
             if self.mode == 'delNode' and item in self.undirected_node_list:
-
-                # for edge in self.edges:
-                #     print(type(edge))
-                #     if item.name in edge:
-                #         self.edges.remove(edge) 
                 tmp = 0
                 # Verify edge before delete
-                # print("edge before:")
-                # print(self.edges)
-                # for edge in self.edges:
-                #         if item.name in edge:
-                #             # print(edge)
-                #             self.edges.remove(edge)
-                self.edges = [edge for edge in self.edges if item.name not in edge]
+                self.undirected_edges = [edge for edge in self.undirected_edges if item.name not in edge]
 
-                for edge in self.edges:
+                for edge in self.undirected_edges:
                         edge[0] -= 1
                         edge[1] -= 1
-                # print("edge after:")
-                # print(self.edges)
-                for edge in self.list_edges:
-                    # if item.name in edge:
+                
+                for edge in self.list_undirected_edges:
                     if item.name in edge.name:
-                        self.list_edges.remove(edge)
+                        self.list_undirected_edges.remove(edge)
 
                 self.scene_1.removeItem(item)
                 self.undirected_node_list.remove(item)
-
                 self.undirected_current_number_nodes -= 1
 
                 for node in self.undirected_node_list:
                     node.name = tmp
                     tmp += 1
-                    # print(node.name)
 
                 self.scene_1.update()
                 self.undirectedView.update()
-                # print(item._edge_list)
-                # self.mode = 'delEdge'
-
-                self.adj_matrix = []
+               
+                self.adj_undirected_matrix = []
                 for i in range(self.undirected_current_number_nodes):
-                    self.adj_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
-                # change adj_matrix after this based on self.edges
-
-
-                
+                    self.adj_undirected_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
+                # change adj_matrix after this based on self.undirected_edges
                 try:
-                    for x, y, w in self.edges:
+                    for x, y, w in self.undirected_edges:
                         if item.name == x or item.name == y:
-                            self.adj_matrix[int(x)][int(y)] = 0
-                            self.adj_matrix[int(y)][int(x)] = 0
-                        self.adj_matrix[int(x)][int(y)] = w
-                        self.adj_matrix[int(y)][int(x)] = w
+                            self.adj_undirected_matrix[int(x)][int(y)] = 0
+                            self.adj_undirected_matrix[int(y)][int(x)] = 0
+                        self.adj_undirected_matrix[int(x)][int(y)] = w
+                        self.adj_undirected_matrix[int(y)][int(x)] = w
                 except:
                     print("Error!")
 
@@ -707,22 +748,22 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
             if self.mode == 'delEdge' and item  not in self.undirected_node_list:
 
-                for edge in self.edges:
+                for edge in self.undirected_edges:
                         if item.name[0] == edge[0] and item.name[1] == edge[1]:
-                            self.edges.remove(edge)
+                            self.undirected_edges.remove(edge)
 
-                self.list_edges.remove(item)
+                self.list_undirected_edges.remove(item)
 
-                if item.name in self.edges:
-                     self.edges.remove(item.name)
+                if item.name in self.undirected_edges:
+                     self.undirected_edges.remove(item.name)
 
-                self.adj_matrix = []
+                self.adj_undirected_matrix = []
                 for i in range(self.undirected_current_number_nodes):
-                    self.adj_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
-                # change adj_matrix after this based on self.edges
-                for x, y, w in self.edges:
-                       self.adj_matrix[int(x)][int(y)] = w
-                       self.adj_matrix[int(y)][int(x)] = w
+                    self.adj_undirected_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
+                # change adj_matrix after this based on self.undirected_edges
+                for x, y, w in self.undirected_edges:
+                       self.adj_undirected_matrix[int(x)][int(y)] = w
+                       self.adj_undirected_matrix[int(y)][int(x)] = w
 
                 self.scene_1.removeItem(item)
                 self.scene_1.update()
@@ -745,12 +786,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 try:
                     number = int(number)
                     item.w = number
-                    for edge in self.edges:
+                    for edge in self.undirected_edges:
                         if item.name[0] == edge[0] and item.name[1] == edge[1]:
                             edge[2] = number
                         
-                    self.adj_matrix[item.name[0]][item.name[1]] = number
-                    self.adj_matrix[item.name[1]][item.name[0]] = number
+                    self.adj_undirected_matrix[item.name[0]][item.name[1]] = number
+                    self.adj_undirected_matrix[item.name[1]][item.name[0]] = number
                 except Exception:
                     QMessageBox.about(self, 'Error','Input can only be a number')
                     pass
@@ -762,12 +803,47 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.mode = None
 
         if self.graph_type == 'Directed':
-            if self.mode == 'delNode' and item in self.directed_node_list:
+            self.scene_2.update()
+            # for m in self.adj_directed_matrix:
+            #     print(m)
+
+            if self.mode == 'delNode' and item in self.directed_node_list:  
+
+                tmp = 0
+                # Verify edge before delete
+                self.directed_edges = [edge for edge in self.directed_edges if item.name not in edge]
+
+                for edge in self.directed_edges:
+                        edge[0] -= 1
+                        edge[1] -= 1
+                
+                for edge in self.list_directed_edges:
+                    if item.name in edge.name:
+                        self.list_directed_edges.remove(edge)
+
                 self.scene_2.removeItem(item)
                 self.directed_node_list.remove(item)
+                self.directed_current_number_nodes -= 1
+
+                for node in self.directed_node_list:
+                    node.name = tmp
+                    tmp += 1
+
                 self.scene_2.update()
-                # print(item._edge_list)
-                # self.mode = 'delEdge'
+                self.directedView.update()
+               
+                self.adj_directed_matrix = []
+                for i in range(self.directed_current_number_nodes):
+                    self.adj_directed_matrix.append([0 for i in range(self.directed_current_number_nodes)])
+                # change adj_matrix after this based on self.undirected_edges
+                try:
+                    for x, y, w in self.directed_edges:
+                        if item.name == x or item.name == y:
+                            self.adj_directed_matrix[int(x)][int(y)] = 0
+                        self.adj_directed_matrix[int(x)][int(y)] = w
+                except:
+                    print("Error!")
+
                 self.btn_1.setEnabled(1)
                 self.btn_2.setEnabled(1)
                 self.btn_3.setEnabled(1)
@@ -775,6 +851,23 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.mode = None
 
             if self.mode == 'delEdge' and item  not in self.directed_node_list:
+
+                for edge in self.directed_edges:
+                        if item.name[0] == edge[0] and item.name[1] == edge[1]:
+                            self.directed_edges.remove(edge)
+
+                self.list_directed_edges.remove(item)
+
+                if item.name in self.directed_edges:
+                     self.directed_edges.remove(item.name)
+
+                self.adj_directed_matrix = []
+                for i in range(self.directed_current_number_nodes):
+                    self.adj_directed_matrix.append([0 for i in range(self.directed_current_number_nodes)])
+                # change adj_matrix after this based on self.undirected_edges
+                for x, y, w in self.directed_edges:
+                       self.adj_directed_matrix[int(x)][int(y)] = w
+
                 self.scene_2.removeItem(item)
                 self.scene_2.update()
                 self.btn_1.setEnabled(1)
@@ -790,6 +883,26 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 if len(self.directed_pairNode) > 2:
                         self.directed_pairNode = []
 
+
+            if self.mode == 'setEdgeW':
+                number = self.textbox.text()
+                # try:
+                number = int(number)
+                item.w = number
+                for edge in self.directed_edges:
+                    if item.name[0] == edge[0] and item.name[1] == edge[1]:
+                        edge[2] = number
+                    
+                self.adj_directed_matrix[item.name[0]][item.name[1]] = number
+                    
+                # except Exception:
+                #     QMessageBox.about(self, 'Error','Input can only be a number')
+                self.btn_1.setEnabled(1)
+                self.btn_2.setEnabled(1)
+                self.btn_3.setEnabled(1)
+                self.btn_4.setEnabled(1)
+                self.btn_5.setEnabled(1)
+                self.mode = None
     # def edgeClicked(self, item):
     #     print('Edge {} clicked!'.format(item))
 
@@ -843,7 +956,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 add v to Q
                 dist[source] ← 0 
                                ''')
-        # for m in self.adj_matrix: 
+        # for m in self.adj_undirected_matrix: 
         #     print(m)
         self.lbl_body.setText('''
             while Q is not empty:
@@ -859,136 +972,185 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                             ''')
         start = self.spb_source.value()
         end = self.spb_des.value()
-        n = len(self.adj_matrix)
+        self.lbl_head.setStyleSheet("background-color:green")
+        if self.graph_type == 'Undirected':
+            n = len(self.adj_undirected_matrix)
+            dist = [inf]*n
+            dist[start] = self.adj_undirected_matrix[start][start]  # 0
+            spVertex = [False]*n
+            parent = [-1]*n
+            path = [{}]*n
 
-        dist = [inf]*n
-        dist[start] = self.adj_matrix[start][start]  # 0
+            if not self.undirected_frames: 
+                for count in range(n):
+                    minix = inf
+                    u = 0
 
-        spVertex = [False]*n
-        parent = [-1]*n
+                    for v in range(len(spVertex)):
+                        if spVertex[v] == False and dist[v] <= minix:
+                            minix = dist[v]
+                            u = v
+                    spVertex[u] = True
+                    self.undirected_frames.append([u])
+                    for v in range(n):
+                        if not(spVertex[v]) and self.adj_undirected_matrix[u][v] != 0 and dist[u] + self.adj_undirected_matrix[u][v] < dist[v]:
 
-        path = [{}]*n
+                            parent[v] = u
+                            dist[v] = dist[u] + self.adj_undirected_matrix[u][v]
+                        if self.adj_undirected_matrix[u][v] != 0:                
+                            self.undirected_frames.append([u, v])
+                
+                for i in range(n):
+                    j = i
+                    s = []
+                    while parent[j] != -1:
+                        s.append(j)
+                        j = parent[j]
+                    s.append(start)
+                    path[i] = s[::-1]
 
-        # print(dist)
-        # print(spVertex)
-        # print(parent)
-        # print(path)
-        if not self.frames: 
-            for count in range(n):
-                minix = inf
-                u = 0
-
-                for v in range(len(spVertex)):
-                    if spVertex[v] == False and dist[v] <= minix:
-                        minix = dist[v]
-                        u = v
-                        
-                        
-
-
-                spVertex[u] = True
-                self.frames.append([u])
-                for v in range(n):
-                    if not(spVertex[v]) and self.adj_matrix[u][v] != 0 and dist[u] + self.adj_matrix[u][v] < dist[v]:
-
-                        parent[v] = u
-                        dist[v] = dist[u] + self.adj_matrix[u][v]
-                    if self.adj_matrix[u][v] != 0:                
-                        self.frames.append([u, v])
-            
-            for i in range(n):
-                j = i
-                s = []
-                while parent[j] != -1:
-                    s.append(j)
-                    j = parent[j]
-                s.append(start)
-                path[i] = s[::-1]
-
-            if end >= 0:
-                print(dist[end], path[end])  
-            else: 
-                print(dist, path)
-        # print("---------------------------")
-        # print(dist)
-        # print(spVertex)
-        # print(parent)
-        # print(path)
-        # print("---------------------------")
-        # print(self.frames)
-        # for ele in self.frames:
-        #     if len(ele) == 2:
-        #         print("Edge")
-        #     else:
-        #         print("Node")
-        try:
-            print(self.frames[self.idx])
-            if len(self.frames[self.idx]) == 1:
-                self.undirected_node_list[self.frames[self.idx][0]].status = 1
-                self.lbl_body.setStyleSheet("background-color:yellow")
-                self.lbl_foot.setStyleSheet("background-color:white")
-                # print("Node")
-            else:
-                # print('--------------')
-                # print(self.frames[self.idx])
-                # print(type(self.frames[self.idx]))
-                # print('--------------')
-                self.lbl_body.setStyleSheet("background-color:white")
-                self.lbl_foot.setStyleSheet("background-color:yellow")
-                for edge in self.list_edges:
+                # if end >= 0:
+                #     print(dist[end], path[end])  
+                # else: 
+                #     print(dist, path)
+        
+            try:
+                # print(self.undirected_frames[self.undirected_idx])
+                if len(self.undirected_frames[self.undirected_idx]) == 1:
+                    self.undirected_node_list[self.undirected_frames[self.undirected_idx][0]].status = 1
+                    self.lbl_body.setStyleSheet("background-color:yellow")
+                    self.lbl_foot.setStyleSheet("background-color:white")
+                else:
+                    self.lbl_body.setStyleSheet("background-color:white")
+                    self.lbl_foot.setStyleSheet("background-color:yellow")
+                    # for edge in self.list_undirected_edges:
+                    #     edge.status = 0
+                    for edge in self.list_undirected_edges:
+                        if self.undirected_frames[self.undirected_idx] == edge.name:
+                            edge.status = 1
+                        else:
+                            edge.status = 0
+                self.undirected_idx += 1
+                self.scene_1.update()
+            except:
+                for edge in self.list_undirected_edges:
                     edge.status = 0
-                for edge in self.list_edges:
-                    # print(edge.name)
-                    if self.frames[self.idx] == edge.name:
-                        edge.status = 1
-                    # print(edge.name)
-                    # print(type(edge.name))
-            self.idx += 1
-            self.scene_1.update()
-        except:
-            for edge in self.list_edges:
-                edge.status = 0
-            shortest_path = dijkstra.find_shortest_path(self.adj_matrix, start, end)
-            shortest_dis = dijkstra.find_shortest_distance(self.adj_matrix, start, end)
-            print(shortest_path)
-            list_edges = list(zip(shortest_path, shortest_path[1:]))
-            list_edges = [list(edge) for edge in list_edges]
-            print(list_edges)
-            for edge in self.list_edges:
-                for path_edge in list_edges:
-                    if path_edge == edge.name:
-                        edge.status = 1
-            self.lbl_body.setStyleSheet("background-color:white")
-            self.lbl_foot.setStyleSheet("background-color:white")
-            self.scene_1.update()
-            QMessageBox.about(self, 'Done','Shortest path from ' + str(start) + ' to ' + str(end) + ' is ' + str(shortest_dis))
-        # timer.setInterval(2000)
-        # 
-        # for node_idx in range(len(self.undirected_node_list)):
-        #     # print(node_idx)
-        #     # timer.setInterval(2000)
-        #     self.undirected_node_list[node_idx].status = 1
-        #     timer.timeout.connect(self.updateNodeStatus)
-        #     timer.start(1000)
-        #     QApplication.processEvents()
-        
-        # self.undirected_node_list[self.idx].status = 1
-        # self.idx += 1
-        # self.scene_1.update()
-            
+                shortest_path = dijkstra.find_shortest_path(self.adj_undirected_matrix, start, end)
+                shortest_dis = dijkstra.find_shortest_distance(self.adj_undirected_matrix, start, end)
+                # print(shortest_path)
+                list_edges = list(zip(shortest_path, shortest_path[1:]))
+                list_edges = [list(edge) for edge in list_edges]
+                # print(list_edges)
+                # [print(edge.name) for edge in self.list_undirected_edges]
+                for edge in self.list_undirected_edges:
+                    for path_edge in list_edges:
+                        if edge.name == path_edge:
+                            edge.status = 1
+                            # print(str(edge.name)+ ' and ' + str(path_edge))
 
-        # print(dijkstra.find_all(self.adj_matrix, 0))
-        # print(dijkstra.find_shortest_path(self.adj_matrix, 0, 1))
-        # print(dijkstra.find_shortest_distance(self.adj_matrix, 0, 1))
+                self.lbl_head.setStyleSheet("background-color:white")
+                self.lbl_body.setStyleSheet("background-color:white")
+                self.lbl_foot.setStyleSheet("background-color:white")
+                self.scene_1.update()
+                QMessageBox.about(self, 'Done','Shortest path from ' + str(start) + ' to ' + str(end) + 
+                                            ' is ' + str(shortest_path) + '. Length ' + str(shortest_dis))
+        else:
+            # print(dijkstra.find_shortest_path(self.adj_directed_matrix, start, end))
+            n = len(self.adj_directed_matrix)
+            dist = [inf]*n
+            dist[start] = self.adj_directed_matrix[start][start]  # 0
+            spVertex = [False]*n
+            parent = [-1]*n
+            path = [{}]*n
 
-    def updateNodeStatus(self):
-        # self.undirected_node_list[idx].status = 1
+            if not self.directed_frames: 
+                for count in range(n):
+                    minix = inf
+                    u = 0
+
+                    for v in range(len(spVertex)):
+                        if spVertex[v] == False and dist[v] <= minix:
+                            minix = dist[v]
+                            u = v
+                    spVertex[u] = True
+                    self.directed_frames.append([u])
+                    for v in range(n):
+                        if not(spVertex[v]) and self.adj_directed_matrix[u][v] != 0 and dist[u] + self.adj_directed_matrix[u][v] < dist[v]:
+                            parent[v] = u
+                            dist[v] = dist[u] + self.adj_directed_matrix[u][v]
+                        if self.adj_directed_matrix[u][v] != 0:                
+                            self.directed_frames.append([u, v])
+                
+                for i in range(n):
+                    j = i
+                    s = []
+                    while parent[j] != -1:
+                        s.append(j)
+                        j = parent[j]
+                    s.append(start)
+                    path[i] = s[::-1]
+
+                # if end >= 0:
+                #     print(dist[end], path[end])  
+                # else: 
+                #     print(dist, path)
         
-        # for node in self.undirected_node_list:
-        #     node.status = 1
-        # self.scene_1.update()
-        # self.undirectedView.update()
-        print('OK')
+            try:
+                # print(self.directed_frames[self.directed_idx])
+                if len(self.directed_frames[self.directed_idx]) == 1:
+                    self.directed_node_list[self.directed_frames[self.directed_idx][0]].status = 1
+                    self.lbl_body.setStyleSheet("background-color:yellow")
+                    self.lbl_foot.setStyleSheet("background-color:white")
+                else:
+                    self.lbl_body.setStyleSheet("background-color:white")
+                    self.lbl_foot.setStyleSheet("background-color:yellow")
+                    for edge in self.list_directed_edges:
+                        edge.status = 0
+                    for edge in self.list_directed_edges:
+                        if self.directed_frames[self.directed_idx] == edge.name:
+                            edge.status = 1
+                self.directed_idx += 1
+                self.scene_2.update()
+            except:
+                for edge in self.list_directed_edges:
+                    edge.status = 0
+                shortest_path = dijkstra.find_shortest_path(self.adj_directed_matrix, start, end)
+                shortest_dis = dijkstra.find_shortest_distance(self.adj_directed_matrix, start, end)
+                print(shortest_path)
+                list_edges = list(zip(shortest_path, shortest_path[1:]))
+                list_edges = [list(edge) for edge in list_edges]
+
+                for edge in self.list_directed_edges:
+                    for path_edge in list_edges:
+                        if edge.name == path_edge:
+                            edge.status = 1
+                            # print(str(edge.name)+ ' and ' + str(path_edge))
+                self.lbl_head.setStyleSheet("background-color:white")
+                self.lbl_body.setStyleSheet("background-color:white")
+                self.lbl_foot.setStyleSheet("background-color:white")
+                self.scene_2.update()
+                QMessageBox.about(self, 'Done','Shortest path from ' + str(start) + ' to ' + str(end) + 
+                                            ' is ' + str(shortest_path) + '. Length ' + str(shortest_dis))
+
+    def refresh(self):
+        for node in self.undirected_node_list:
+            node.status = 0
+        for node in self.directed_node_list:
+            node.status = 0
+        for edge in self.list_undirected_edges:
+            edge.status = 0
+        for edge in self.list_directed_edges:
+            edge.status = 0
+        self.directed_frames = []
+        self.undirected_frames = []
+        self.undirected_idx = 0
+        self.directed_idx = 0
+        self.lbl_head.setStyleSheet("background-color:white")
+        self.lbl_body.setStyleSheet("background-color:white")
+        self.lbl_foot.setStyleSheet("background-color:white")
+        self.scene_1.update()
+        self.scene_2.update()
+        # print('OK')
 
     def item_moved(self):
         if not self.graphicsView._timer_id:
