@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>847</width>
+    <width>932</width>
     <height>612</height>
    </rect>
   </property>
@@ -20,7 +20,7 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>280</x>
+      <x>390</x>
       <y>10</y>
       <width>521</width>
       <height>281</height>
@@ -133,7 +133,7 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>280</x>
+      <x>390</x>
       <y>300</y>
       <width>521</width>
       <height>271</height>
@@ -268,13 +268,26 @@
      <string>Refresh</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_8">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>170</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>All path</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>847</width>
+     <width>932</width>
      <height>21</height>
     </rect>
    </property>

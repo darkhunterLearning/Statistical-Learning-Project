@@ -460,6 +460,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.directed_frames = []
         self.undirected_pairNode = []
         self.directed_pairNode = []
+        self.all_undirected_path = []
+        self.all_directed_path = []
         uic.loadUi('main.ui', self)
 
         # ẩn phần dư của main windown chỉ để hiện background
@@ -495,6 +497,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_5: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_5')
         self.btn_6: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_6')
         self.btn_7: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_7')
+        self.btn_8: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_8')
+        self.btn_6.setEnabled(0)
+        self.btn_7.setEnabled(0)
+        self.btn_8.setEnabled(0)
 
         self.spb_source: QtWidgets.QSpinBox = self.findChild(QtWidgets.QSpinBox, 'spb_source')
         self.spb_des: QtWidgets.QSpinBox = self.findChild(QtWidgets.QSpinBox, 'spb_des')
@@ -506,6 +512,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_5.clicked.connect(lambda: self.setEdgeW())
         self.btn_6.clicked.connect(lambda: self.showMatrix())
         self.btn_7.clicked.connect(lambda: self.refresh())
+        self.btn_8.clicked.connect(lambda: self.allPath())
 
         self.rbtn_undirected.toggled.connect(self.graphType)
         # self.rbtn_directed.toggled.connect(self.graphType)
@@ -574,6 +581,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     self.btn_3.setEnabled(1)
                     self.btn_4.setEnabled(1)
                     self.btn_5.setEnabled(1)
+                    self.btn_6.setEnabled(1)
+                    self.btn_7.setEnabled(1)
+                    self.btn_8.setEnabled(1)
 
                     self.undirected_current_number_nodes += 1
 
@@ -1151,6 +1161,35 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.scene_1.update()
         self.scene_2.update()
         # print('OK')
+
+    def allPath(self):
+        start = self.spb_source.value()
+        end = self.spb_des.value()
+        # self.all_undirected_path = []
+        # self.all_directed_path = []
+        if self.graph_type == 'Undirected':
+            for node in range(self.undirected_current_number_nodes):
+                path = dijkstra.find_shortest_path(self.adj_undirected_matrix, start, node)
+                path_length = dijkstra.find_shortest_distance(self.adj_undirected_matrix, start, node)
+                txt = 'Shortest path from ' + str(start) + ' to ' + str(node) + ' is ' + str(path) + '. Length ' + str(path_length)
+                self.all_undirected_path.append(txt)
+            # print(self.all_undirected_path)
+            text_info = ''
+            for path in self.all_undirected_path:
+                text_info += path + '\n' 
+            QMessageBox.about(self, 'All path', text_info)
+        else:
+            for node in range(self.directed_current_number_nodes):
+                path = dijkstra.find_shortest_path(self.adj_directed_matrix, start, node)
+                path_length = dijkstra.find_shortest_distance(self.adj_directed_matrix, start, node)
+                txt = 'Shortest path from ' + str(start) + ' to ' + str(node) + ' is ' + str(path) + '. Length ' + str(path_length)
+                self.all_directed_path.append(txt)
+
+            text_info = ''
+            for path in self.all_directed_path:
+                text_info += path + '\n' 
+            QMessageBox.about(self, 'All path', text_info)
+
 
     def item_moved(self):
         if not self.graphicsView._timer_id:
