@@ -498,6 +498,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_6: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_6')
         self.btn_7: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_7')
         self.btn_8: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_8')
+        self.btn_9: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_9')
         self.btn_6.setEnabled(0)
         self.btn_7.setEnabled(0)
         self.btn_8.setEnabled(0)
@@ -510,9 +511,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_3.clicked.connect(lambda: self.delNode())
         self.btn_4.clicked.connect(lambda: self.delEdge())
         self.btn_5.clicked.connect(lambda: self.setEdgeW())
-        self.btn_6.clicked.connect(lambda: self.showMatrix())
+        self.btn_6.clicked.connect(lambda: self.Dijkstra())
         self.btn_7.clicked.connect(lambda: self.refresh())
         self.btn_8.clicked.connect(lambda: self.allPath())
+        self.btn_9.clicked.connect(lambda: self.BellmanFord())
 
         self.rbtn_undirected.toggled.connect(self.graphType)
         # self.rbtn_directed.toggled.connect(self.graphType)
@@ -810,6 +812,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.btn_3.setEnabled(1)
                 self.btn_4.setEnabled(1)
                 self.btn_5.setEnabled(1)
+                self.btn_6.setEnabled(1)
+                self.btn_7.setEnabled(1)
+                self.btn_8.setEnabled(1)
                 self.mode = None
 
         if self.graph_type == 'Directed':
@@ -912,6 +917,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.btn_3.setEnabled(1)
                 self.btn_4.setEnabled(1)
                 self.btn_5.setEnabled(1)
+                self.btn_6.setEnabled(1)
+                self.btn_7.setEnabled(1)
+                self.btn_8.setEnabled(1)
                 self.mode = None
     # def edgeClicked(self, item):
     #     print('Edge {} clicked!'.format(item))
@@ -957,7 +965,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_5.setEnabled(0)
         self.textbox.setEnabled(1)
 
-    def showMatrix(self):
+    def Dijkstra(self):
         self.lbl_head.setText('''
         function Dijkstra(Graph, source):
             for each vertex v in Graph.Vertices:
@@ -1142,6 +1150,126 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 QMessageBox.about(self, 'Done','Shortest path from ' + str(start) + ' to ' + str(end) + 
                                             ' is ' + str(shortest_path) + '. Length ' + str(shortest_dis))
 
+    def BellmanFord(self):
+        # print('BellmanFord')
+        # print('Undirected')
+        # for x, y, w in self.undirected_edges:
+        #     print(x, y, w)
+        # print('----------')
+        # print('Directed')
+        # for x, y, w in self.directed_edges:
+        #     print(x, y, w)
+        self.lbl_head.setText('''
+        function bellmanFord(Graph, source):
+            for each vertex v in Graph.Vertices:
+                dist[v] ← INFINITY
+                prev[v] ← UNDEFINED
+            dist[source] ← 0 
+                               ''')
+        # for m in self.adj_undirected_matrix: 
+        #     print(m)
+        self.lbl_body.setText('''
+            for each vertex v in Graph.Vertices:           
+                for each edge (U,V) in Graph.Edges:
+                    tempDistance ← distance[U] + edge_weight(U, V)
+                    if tempDistance < distance[V]:
+                        distance[V] ← tempDistance
+                        previous[V] ← U
+                            ''')
+        self.lbl_foot.setText('''
+            for each edge (U,V) in Graph.Edges:
+                If distance[U] + edge_weight(U, V) < distance[V]:
+                    Error: Negative Cycle Exists
+                            ''')
+
+
+        start = self.spb_source.value()
+        end = self.spb_des.value()
+
+        if self.graph_type == 'Undirected':
+            pass
+        else:
+            dist = [inf] * self.directed_current_number_nodes
+            dist[start] = 0
+            # print(dist)
+            list_frames = []
+
+            for _ in range(self.directed_current_number_nodes):
+                list_frames.append([_])
+                for u, v, w in self.directed_edges:
+                    if u == _ :
+                        list_frames.append([u, v])
+                if _ == self.directed_current_number_nodes - 1:    
+                    list_frames.append([-1])
+            # print(duplicate(list_frames, self.directed_current_number_nodes))
+
+            for _ in range(self.directed_current_number_nodes - 1):
+                # Update dist value and parent index of the adjacent vertices of
+                # the picked vertex. Consider only those vertices which are still in
+                # queue
+                for u, v, w in self.directed_edges:
+                #     # print('dist[u] ' + str(dist[u]))
+                #     # print('u ' + str(u))
+                    # print('u: ' + str(u) + ' v: ' + str(v))
+                    if dist[u] != inf and dist[u] + w < dist[v]:
+                            dist[v] = dist[u] + w
+                #             # print('dist[v] ' + str(dist[v]))
+                #             print('u: ' + str(u) + ' v: ' + str(v))
+            hasNegativeCycle = False
+            for u, v, w in self.directed_edges:
+                    if dist[u] != inf and dist[u] + w < dist[v]:
+                            # print("Graph contains negative weight cycle")
+                            hasNegativeCycle = True
+                            break
+
+            self.directed_frames = duplicate(list_frames, self.directed_current_number_nodes)
+
+            if hasNegativeCycle:
+                    QMessageBox.about(self, 'Done','Graph contains negative weight cycle')
+            else:
+                try:
+                    # print(self.directed_frames[self.directed_idx])
+                    self.lbl_body.setStyleSheet("background-color:yellow")
+                    if len(self.directed_frames[self.directed_idx]) == 1:
+                        if self.directed_frames[self.directed_idx][0] == -1:
+                            for node in self.directed_node_list:
+                                node.status = 0
+                            for edge in self.list_directed_edges:
+                                edge.status = 0
+
+                        else:
+                            self.directed_node_list[self.directed_frames[self.directed_idx][0]].status = 1  
+                    else:
+                        for edge in self.list_directed_edges:
+                            edge.status = 0
+                        for edge in self.list_directed_edges:
+                            if self.directed_frames[self.directed_idx] == edge.name:
+                                edge.status = 1
+                    self.directed_idx += 1
+                    self.scene_2.update()
+                except:
+                    for edge in self.list_directed_edges:
+                        edge.status = 0
+
+                    print("Vertex Distance from Source")
+                    for i in range(self.directed_current_number_nodes):
+                        print("{0}\t\t{1}".format(i, dist[i]))
+
+                    
+                    self.lbl_head.setStyleSheet("background-color:white")
+                    self.lbl_body.setStyleSheet("background-color:white")
+                    self.lbl_foot.setStyleSheet("background-color:white")
+                    self.scene_2.update()
+
+                    text_info = ''
+                    for i in range(self.directed_current_number_nodes):
+                        path = "Shortest path length from {0} to {1} is {2}".format(start, i, dist[i])
+                        text_info += path + '\n' 
+                    
+                    QMessageBox.about(self, 'Vertex Distance from Source', text_info)
+
+        # print(duplicate(list_frames, self.directed_current_number_nodes))
+
     def refresh(self):
         for node in self.undirected_node_list:
             node.status = 0
@@ -1203,6 +1331,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         # print(self.graph_type)
 
+def duplicate(testList, n):
+    return testList*n
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
