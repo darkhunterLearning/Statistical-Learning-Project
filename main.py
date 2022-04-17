@@ -1187,7 +1187,85 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         end = self.spb_des.value()
 
         if self.graph_type == 'Undirected':
-            pass
+            dist = [inf] * self.undirected_current_number_nodes
+            dist[start] = 0
+            # print(dist)
+            list_frames = []
+
+            for _ in range(self.undirected_current_number_nodes):
+                list_frames.append([_])
+                for u, v, w in self.undirected_edges:
+                    if u == _ :
+                        list_frames.append([u, v])
+                if _ == self.undirected_current_number_nodes - 1:    
+                    list_frames.append([-1])
+            # print(duplicate(list_frames, self.directed_current_number_nodes))
+
+            for _ in range(self.undirected_current_number_nodes - 1):
+                # Update dist value and parent index of the adjacent vertices of
+                # the picked vertex. Consider only those vertices which are still in
+                # queue
+                for u, v, w in self.undirected_edges:
+                #     # print('dist[u] ' + str(dist[u]))
+                #     # print('u ' + str(u))
+                    # print('u: ' + str(u) + ' v: ' + str(v))
+                    if dist[u] != inf and dist[u] + w < dist[v]:
+                            dist[v] = dist[u] + w
+                #             # print('dist[v] ' + str(dist[v]))
+                #             print('u: ' + str(u) + ' v: ' + str(v))
+            hasNegativeCycle = False
+            for u, v, w in self.undirected_edges:
+                    if dist[u] != inf and dist[u] + w < dist[v]:
+                            # print("Graph contains negative weight cycle")
+                            hasNegativeCycle = True
+                            break
+
+            self.undirected_frames = duplicate(list_frames, self.undirected_current_number_nodes)
+            
+            if hasNegativeCycle:
+                    self.lbl_foot.setStyleSheet("background-color:red")
+                    QMessageBox.about(self, 'Done','Graph contains negative weight cycle')
+            else:
+                try:
+                    # print(self.directed_frames[self.directed_idx])
+                    self.lbl_body.setStyleSheet("background-color:yellow")
+                    if len(self.undirected_frames[self.undirected_idx]) == 1:
+                        if self.undirected_frames[self.undirected_idx][0] == -1:
+                            for node in self.undirected_node_list:
+                                node.status = 0
+                            for edge in self.list_undirected_edges:
+                                edge.status = 0
+
+                        else:
+                            self.undirected_node_list[self.undirected_frames[self.undirected_idx][0]].status = 1  
+                    else:
+                        for edge in self.list_undirected_edges:
+                            edge.status = 0
+                        for edge in self.list_undirected_edges:
+                            if self.undirected_frames[self.undirected_idx] == edge.name:
+                                edge.status = 1
+                    self.undirected_idx += 1
+                    self.scene_1.update()
+                except:
+                    for edge in self.list_undirected_edges:
+                        edge.status = 0
+
+                    # print("Vertex Distance from Source")
+                    # for i in range(self.directed_current_number_nodes):
+                    #     print("{0}\t\t{1}".format(i, dist[i]))
+
+                    
+                    self.lbl_head.setStyleSheet("background-color:white")
+                    self.lbl_body.setStyleSheet("background-color:white")
+                    self.lbl_foot.setStyleSheet("background-color:white")
+                    self.scene_1.update()
+
+                    text_info = ''
+                    for i in range(self.undirected_current_number_nodes):
+                        path = "Shortest path length from {0} to {1} is {2}".format(start, i, dist[i])
+                        text_info += path + '\n' 
+                    
+                    QMessageBox.about(self, 'Vertex Distance from Source', text_info)
         else:
             dist = [inf] * self.directed_current_number_nodes
             dist[start] = 0
@@ -1225,6 +1303,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.directed_frames = duplicate(list_frames, self.directed_current_number_nodes)
 
             if hasNegativeCycle:
+                    self.lbl_foot.setStyleSheet("background-color:red")
                     QMessageBox.about(self, 'Done','Graph contains negative weight cycle')
             else:
                 try:
@@ -1251,9 +1330,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     for edge in self.list_directed_edges:
                         edge.status = 0
 
-                    print("Vertex Distance from Source")
-                    for i in range(self.directed_current_number_nodes):
-                        print("{0}\t\t{1}".format(i, dist[i]))
+                    # print("Vertex Distance from Source")
+                    # for i in range(self.directed_current_number_nodes):
+                    #     print("{0}\t\t{1}".format(i, dist[i]))
 
                     
                     self.lbl_head.setStyleSheet("background-color:white")
