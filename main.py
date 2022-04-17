@@ -462,6 +462,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.directed_pairNode = []
         self.all_undirected_path = []
         self.all_directed_path = []
+        self.undirected_BFS_result = ''
+        self.directed_BFS_result = ''
         uic.loadUi('main.ui', self)
 
         # ẩn phần dư của main windown chỉ để hiện background
@@ -499,6 +501,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_7: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_7')
         self.btn_8: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_8')
         self.btn_9: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_9')
+        self.btn_10: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_10')
         self.btn_6.setEnabled(0)
         self.btn_7.setEnabled(0)
         self.btn_8.setEnabled(0)
@@ -515,6 +518,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_7.clicked.connect(lambda: self.refresh())
         self.btn_8.clicked.connect(lambda: self.allPath())
         self.btn_9.clicked.connect(lambda: self.BellmanFord())
+        self.btn_10.clicked.connect(lambda: self.BFS())
 
         self.rbtn_undirected.toggled.connect(self.graphType)
         # self.rbtn_directed.toggled.connect(self.graphType)
@@ -1349,6 +1353,147 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         # print(duplicate(list_frames, self.directed_current_number_nodes))
 
+    def BFS(self):
+        self.lbl_head.setText('''
+        procedure BFS(G, root) is
+            let Q be a queue
+            label root as explored
+            Q.enqueue(root) 
+                             ''')
+        # for m in self.adj_undirected_matrix: 
+        #     print(m)
+        self.lbl_body.setText('''
+            while Q is not empty do
+                v := Q.dequeue()
+                if v is the goal then
+                    return v
+                            ''')
+        self.lbl_foot.setText('''
+                for all edges from v to w in G.adjacentEdges(v) do
+                    if w is not labeled as explored then
+                        label w as explored
+                        Q.enqueue(w)
+                            ''')
+        start = self.spb_source.value()
+        end = self.spb_des.value()
+        
+        if self.graph_type == 'Undirected':
+            if not self.undirected_frames: 
+                visited = [False] * self.undirected_current_number_nodes
+                q = [start]
+         
+                # Set source as visited
+                visited[start] = True
+         
+                while q:
+                    vis = q[0]
+         
+                    # Print current node
+                    # print(vis, end = ' ')
+                    # print(vis)
+                    self.undirected_BFS_result += str(vis) + ' '
+                    self.undirected_frames.append([vis])
+                    q.pop(0)
+                     
+                    # For every adjacent vertex to
+                    # the current vertex
+                    for i in range(self.undirected_current_number_nodes):
+                        if (self.adj_undirected_matrix[vis][i] != 0 and
+                              (not visited[i])):
+                                   
+                            # Push the adjacent node
+                            # in the queue
+                            q.append(i)
+                             
+                            # set
+                            visited[i] = True
+                            # print(vis, i)
+                            self.undirected_frames.append([vis, i])
+
+            # print(self.undirected_frames)
+            try:
+                # print(self.undirected_frames[self.undirected_idx])
+                if len(self.undirected_frames[self.undirected_idx]) == 1:
+                    self.undirected_node_list[self.undirected_frames[self.undirected_idx][0]].status = 1
+                    self.lbl_body.setStyleSheet("background-color:orange")
+                    self.lbl_foot.setStyleSheet("background-color:yellow")
+                else:
+                    self.lbl_body.setStyleSheet("background-color:white")
+                    # self.lbl_foot.setStyleSheet("background-color:yellow")
+                    # for edge in self.list_undirected_edges:
+                    #     edge.status = 0
+                    for edge in self.list_undirected_edges:
+                        if self.undirected_frames[self.undirected_idx] == edge.name:
+                            edge.status = 1
+                self.undirected_idx += 1
+                self.scene_1.update()
+            except:
+                for edge in self.list_undirected_edges:
+                    edge.status = 0
+                # self.lbl_head.setStyleSheet("background-color:white")
+                self.lbl_body.setStyleSheet("background-color:white")
+                self.lbl_foot.setStyleSheet("background-color:white")
+                self.scene_1.update()
+                QMessageBox.about(self, 'Done', "BFS's result: " + self.undirected_BFS_result)
+        else:
+            if not self.directed_frames: 
+                visited = [False] * self.directed_current_number_nodes
+                q = [start]
+         
+                # Set source as visited
+                visited[start] = True
+         
+                while q:
+                    vis = q[0]
+         
+                    # Print current node
+                    # print(vis, end = ' ')
+                    # print(vis)
+                    self.directed_BFS_result += str(vis) + ' '
+                    self.directed_frames.append([vis])
+                    q.pop(0)
+                     
+                    # For every adjacent vertex to
+                    # the current vertex
+                    for i in range(self.directed_current_number_nodes):
+                        if (self.adj_directed_matrix[vis][i] != 0 and
+                              (not visited[i])):
+                                   
+                            # Push the adjacent node
+                            # in the queue
+                            q.append(i)
+                             
+                            # set
+                            visited[i] = True
+                            # print(vis, i)
+                            self.directed_frames.append([vis, i])
+
+            # print(self.undirected_frames)
+            try:
+                # print(self.undirected_frames[self.undirected_idx])
+                if len(self.directed_frames[self.directed_idx]) == 1:
+                    self.directed_node_list[self.directed_frames[self.directed_idx][0]].status = 1
+                    self.lbl_body.setStyleSheet("background-color:orange")
+                    self.lbl_foot.setStyleSheet("background-color:yellow")
+                else:
+                    self.lbl_body.setStyleSheet("background-color:white")
+                    # self.lbl_foot.setStyleSheet("background-color:yellow")
+                    # for edge in self.list_undirected_edges:
+                    #     edge.status = 0
+                    for edge in self.list_directed_edges:
+                        if self.directed_frames[self.directed_idx] == edge.name:
+                            edge.status = 1
+                self.directed_idx += 1
+                self.scene_2.update()
+            except:
+                for edge in self.list_directed_edges:
+                    edge.status = 0
+                # self.lbl_head.setStyleSheet("background-color:white")
+                self.lbl_body.setStyleSheet("background-color:white")
+                self.lbl_foot.setStyleSheet("background-color:white")
+                self.scene_2.update()
+                QMessageBox.about(self, 'Done', "BFS's result: " + self.directed_BFS_result)
+
     def refresh(self):
         for node in self.undirected_node_list:
             node.status = 0
@@ -1362,6 +1507,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.undirected_frames = []
         self.undirected_idx = 0
         self.directed_idx = 0
+        self.undirected_BFS_result = ''
+        self.directed_BFS_result = ''
         self.lbl_head.setStyleSheet("background-color:white")
         self.lbl_body.setStyleSheet("background-color:white")
         self.lbl_foot.setStyleSheet("background-color:white")
@@ -1396,7 +1543,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             for path in self.all_directed_path:
                 text_info += path + '\n' 
             QMessageBox.about(self, 'All path', text_info)
-
 
     def item_moved(self):
         if not self.graphicsView._timer_id:
