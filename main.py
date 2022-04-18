@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (QApplication, QGraphicsItem, QGraphicsScene,
                                QGraphicsView, QStyle, QWidget, QGridLayout, QDesktopWidget, QGraphicsLineItem, QMessageBox)
 
 import dijkstra
+from collections import defaultdict
 
 class UndirectedEdge(QGraphicsItem):
 
@@ -464,6 +465,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.all_directed_path = []
         self.undirected_BFS_result = ''
         self.directed_BFS_result = ''
+        self.undirected_DFS_result = ''
+        self.directed_DFS_result = ''
         uic.loadUi('main.ui', self)
 
         # ẩn phần dư của main windown chỉ để hiện background
@@ -502,6 +505,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_8: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_8')
         self.btn_9: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_9')
         self.btn_10: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_10')
+        self.btn_11: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'btn_11')
         self.btn_6.setEnabled(0)
         self.btn_7.setEnabled(0)
         self.btn_8.setEnabled(0)
@@ -519,6 +523,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_8.clicked.connect(lambda: self.allPath())
         self.btn_9.clicked.connect(lambda: self.BellmanFord())
         self.btn_10.clicked.connect(lambda: self.BFS())
+        self.btn_11.clicked.connect(lambda: self.DFS())
 
         self.rbtn_undirected.toggled.connect(self.graphType)
         # self.rbtn_directed.toggled.connect(self.graphType)
@@ -1494,6 +1499,63 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.scene_2.update()
                 QMessageBox.about(self, 'Done', "BFS's result: " + self.directed_BFS_result)
 
+    def DFS(self):
+        # print('DFS')
+
+        start = self.spb_source.value()
+        end = self.spb_des.value()
+
+        if self.graph_type == 'Undirected':
+            if not self.undirected_frames: 
+                adj_list = matrixToList(self.adj_undirected_matrix)
+                input_matrix = list(adj_list.values())
+
+                # for m in self.adj_undirected_matrix:
+                #     print(m)
+
+                # for m in test_list:
+                #     print(m)
+
+                # Create a array of visited node
+                visited = [False for i in range(self.undirected_current_number_nodes)]
+             
+                # Vector to track last visited road
+                road_used = []
+             
+                # Initialize all the node with false
+                for i in range(self.undirected_current_number_nodes):
+                    visited[i] = False
+             
+                # Call the function
+                try:
+                    self.undirected_frames = dfsUtil(start, self.undirected_current_number_nodes, visited, road_used, -1, 0, input_matrix)
+                except:
+                    self.undirected_frames.append([-1])
+
+              
+            if self.undirected_frames[0][0] == -1:
+                QMessageBox.about(self, 'Warning', "DFS implement for connected undirected graph only! Please try again!")
+            else:
+                try:
+                    self.undirected_node_list[self.undirected_frames[self.undirected_idx][0]].status = 1
+
+                    for node in self.undirected_node_list:
+                        if self.undirected_frames[self.undirected_idx][0] != node.name: 
+                            node.status = 0
+
+                    self.undirected_idx += 1
+                    self.scene_1.update()
+                except:
+                    for node in self.undirected_node_list:
+                        node.status = 0
+                    # self.lbl_head.setStyleSheet("background-color:white")
+                    self.scene_1.update()
+                    QMessageBox.about(self, 'Done', "DFS's result: " + str(self.undirected_frames))
+
+        else:
+            QMessageBox.about(self, 'Warning', "DFS implement for connected undirected graph only! Please try again!")
+
+
     def refresh(self):
         for node in self.undirected_node_list:
             node.status = 0
@@ -1558,6 +1620,58 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 def duplicate(testList, n):
     return testList*n
+
+def matrixToList(a):
+    adjList = defaultdict(list)
+    for i in range(len(a)):
+        for j in range(len(a[i])):
+            if a[i][j] != 0:
+               adjList[i].append(j)
+    return adjList
+
+# Function to print the complete DFS-traversal
+def dfsUtil(u, node, visited, road_used, parent, it, adj, result=None):
+
+    if result is None:  # create a new result if no intermediate was given
+        result = []
+
+    c = 0
+ 
+    # Check if all th node is visited
+    # or not and count unvisited nodes
+    for i in range(node):
+        if (visited[i]):
+            c += 1
+ 
+    # If all the node is visited return
+    if (c == node):
+        return
+ 
+    # Mark not visited node as visited
+    visited[u] = True
+ 
+    # Track the current edge
+    road_used.append([parent, u])
+    # print(road_used)
+    # Print the node
+    result.append([u])
+    # print(u, end = " ")
+ 
+    # Check for not visited node and proceed with it.
+    for x in adj[u]:
+        # Call the DFs function if not visited
+        if (not visited[x]):
+            dfsUtil(x, node, visited, road_used, u, it + 1, adj, result)
+    
+ 
+    # Backtrack through the last visited nodes
+    
+    for y in road_used:
+        if (y[1] == u):
+            dfsUtil(y[0], node, visited, road_used, u, it + 1, adj, result)
+    
+
+    return result
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

@@ -307,6 +307,19 @@
      <string>BFS</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_11">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>210</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>DFS</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
