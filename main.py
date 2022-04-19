@@ -509,6 +509,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_6.setEnabled(0)
         self.btn_7.setEnabled(0)
         self.btn_8.setEnabled(0)
+        self.btn_9.setEnabled(0)
+        self.btn_10.setEnabled(0)
+        self.btn_11.setEnabled(0)
 
         self.spb_source: QtWidgets.QSpinBox = self.findChild(QtWidgets.QSpinBox, 'spb_source')
         self.spb_des: QtWidgets.QSpinBox = self.findChild(QtWidgets.QSpinBox, 'spb_des')
@@ -595,6 +598,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     self.btn_6.setEnabled(1)
                     self.btn_7.setEnabled(1)
                     self.btn_8.setEnabled(1)
+                    self.btn_9.setEnabled(1)
+                    self.btn_10.setEnabled(1)
+                    self.btn_11.setEnabled(1)
 
                     self.undirected_current_number_nodes += 1
 
@@ -636,6 +642,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     self.btn_3.setEnabled(1)
                     self.btn_4.setEnabled(1)
                     self.btn_5.setEnabled(1)
+                    self.btn_6.setEnabled(1)
+                    self.btn_7.setEnabled(1)
+                    self.btn_8.setEnabled(1)
+                    self.btn_9.setEnabled(1)
+                    self.btn_10.setEnabled(1)
+                    self.btn_11.setEnabled(1)
                     self.undirected_pairNode = []
                     self.mode = None
             
@@ -656,6 +668,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     self.btn_3.setEnabled(1)
                     self.btn_4.setEnabled(1)
                     self.btn_5.setEnabled(1)
+                    self.btn_6.setEnabled(1)
+                    self.btn_7.setEnabled(1)
+                    self.btn_8.setEnabled(1)
+                    self.btn_9.setEnabled(1)
+                    self.btn_10.setEnabled(1)
+                    self.btn_11.setEnabled(1)
 
                     self.directed_current_number_nodes += 1
                     self.adj_directed_matrix = []
@@ -697,6 +715,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     self.btn_3.setEnabled(1)
                     self.btn_4.setEnabled(1)
                     self.btn_5.setEnabled(1)
+                    self.btn_6.setEnabled(1)
+                    self.btn_7.setEnabled(1)
+                    self.btn_8.setEnabled(1)
+                    self.btn_9.setEnabled(1)
+                    self.btn_10.setEnabled(1)
+                    self.btn_11.setEnabled(1)
                     self.directed_pairNode = []
                     self.mode = None
 
@@ -764,6 +788,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.btn_3.setEnabled(1)
                 self.btn_4.setEnabled(1)
                 self.btn_5.setEnabled(1)
+                self.btn_6.setEnabled(1)
+                self.btn_7.setEnabled(1)
+                self.btn_8.setEnabled(1)
+                self.btn_9.setEnabled(1)
+                self.btn_10.setEnabled(1)
+                self.btn_11.setEnabled(1)
                 self.mode = None
 
 
@@ -793,6 +823,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.btn_3.setEnabled(1)
                 self.btn_4.setEnabled(1)
                 self.btn_5.setEnabled(1)
+                self.btn_6.setEnabled(1)
+                self.btn_7.setEnabled(1)
+                self.btn_8.setEnabled(1)
+                self.btn_9.setEnabled(1)
+                self.btn_10.setEnabled(1)
+                self.btn_11.setEnabled(1)
                 self.mode = None
                 # self._edge_list.remove(item)
 
@@ -824,6 +860,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.btn_6.setEnabled(1)
                 self.btn_7.setEnabled(1)
                 self.btn_8.setEnabled(1)
+                self.btn_9.setEnabled(1)
+                self.btn_10.setEnabled(1)
+                self.btn_11.setEnabled(1)
                 self.mode = None
 
         if self.graph_type == 'Directed':
@@ -872,6 +911,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.btn_2.setEnabled(1)
                 self.btn_3.setEnabled(1)
                 self.btn_4.setEnabled(1)
+                self.btn_5.setEnabled(1)
+                self.btn_6.setEnabled(1)
+                self.btn_7.setEnabled(1)
+                self.btn_8.setEnabled(1)
+                self.btn_9.setEnabled(1)
+                self.btn_10.setEnabled(1)
+                self.btn_11.setEnabled(1)
                 self.mode = None
 
             if self.mode == 'delEdge' and item  not in self.directed_node_list:
@@ -898,6 +944,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.btn_2.setEnabled(1)
                 self.btn_3.setEnabled(1)
                 self.btn_4.setEnabled(1)
+                self.btn_5.setEnabled(1)
+                self.btn_6.setEnabled(1)
+                self.btn_7.setEnabled(1)
+                self.btn_8.setEnabled(1)
+                self.btn_9.setEnabled(1)
+                self.btn_10.setEnabled(1)
+                self.btn_11.setEnabled(1)
                 self.mode = None
                 # self._edge_list.remove(item)
 
@@ -929,6 +982,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.btn_6.setEnabled(1)
                 self.btn_7.setEnabled(1)
                 self.btn_8.setEnabled(1)
+                self.btn_9.setEnabled(1)
+                self.btn_10.setEnabled(1)
+                self.btn_11.setEnabled(1)
                 self.mode = None
     # def edgeClicked(self, item):
     #     print('Edge {} clicked!'.format(item))
@@ -940,6 +996,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_3.setEnabled(0)
         self.btn_4.setEnabled(0)
         self.btn_5.setEnabled(0)
+        self.btn_6.setEnabled(0)
+        self.btn_7.setEnabled(0)
+        self.btn_8.setEnabled(0)
+        self.btn_9.setEnabled(0)
+        self.btn_10.setEnabled(0)
+        self.btn_11.setEnabled(0)
 
     def addEdge(self):
         self.mode = 'addEdge'
@@ -948,6 +1010,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_3.setEnabled(0)
         self.btn_4.setEnabled(0)
         self.btn_5.setEnabled(0)
+        self.btn_6.setEnabled(0)
+        self.btn_7.setEnabled(0)
+        self.btn_8.setEnabled(0)
+        self.btn_9.setEnabled(0)
+        self.btn_10.setEnabled(0)
+        self.btn_11.setEnabled(0)
 
     def delNode(self):
         self.mode = 'delNode'
@@ -956,6 +1024,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_3.setEnabled(0)
         self.btn_4.setEnabled(0)
         self.btn_5.setEnabled(0)
+        self.btn_6.setEnabled(0)
+        self.btn_7.setEnabled(0)
+        self.btn_8.setEnabled(0)
+        self.btn_9.setEnabled(0)
+        self.btn_10.setEnabled(0)
+        self.btn_11.setEnabled(0)
 
     def delEdge(self):
         self.mode = 'delEdge'
@@ -964,6 +1038,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_3.setEnabled(0)
         self.btn_4.setEnabled(0)
         self.btn_5.setEnabled(0)
+        self.btn_6.setEnabled(0)
+        self.btn_7.setEnabled(0)
+        self.btn_8.setEnabled(0)
+        self.btn_9.setEnabled(0)
+        self.btn_10.setEnabled(0)
+        self.btn_11.setEnabled(0)
 
     def setEdgeW(self):
         self.mode = 'setEdgeW'
@@ -972,6 +1052,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.btn_3.setEnabled(0)
         self.btn_4.setEnabled(0)
         self.btn_5.setEnabled(0)
+        self.btn_6.setEnabled(0)
+        self.btn_7.setEnabled(0)
+        self.btn_8.setEnabled(0)
+        self.btn_9.setEnabled(0)
+        self.btn_10.setEnabled(0)
+        self.btn_11.setEnabled(0)
         self.textbox.setEnabled(1)
 
     def Dijkstra(self):
@@ -1501,59 +1587,77 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def DFS(self):
         # print('DFS')
-
+        self.lbl_head.setText('''
+        procedure DFS_iterative(G, v) is
+            let S be a stack
+            S.push(v) 
+                             ''')
+        # for m in self.adj_undirected_matrix: 
+        #     print(m)
+        self.lbl_body.setText('''
+            while S is not empty do
+                v = S.pop()
+                if v is not labeled as discovered then
+                    label v as discovered
+                            ''')
+        self.lbl_foot.setText('''
+                    for all edges from v to w in G.adjacentEdges(v) do 
+                        S.push(w)
+                            ''')
         start = self.spb_source.value()
         end = self.spb_des.value()
 
         if self.graph_type == 'Undirected':
             if not self.undirected_frames: 
-                adj_list = matrixToList(self.adj_undirected_matrix)
-                input_matrix = list(adj_list.values())
-
-                # for m in self.adj_undirected_matrix:
-                #     print(m)
-
-                # for m in test_list:
-                #     print(m)
-
-                # Create a array of visited node
-                visited = [False for i in range(self.undirected_current_number_nodes)]
-             
-                # Vector to track last visited road
-                road_used = []
-             
-                # Initialize all the node with false
-                for i in range(self.undirected_current_number_nodes):
-                    visited[i] = False
-             
-                # Call the function
-                try:
-                    self.undirected_frames = dfsUtil(start, self.undirected_current_number_nodes, visited, road_used, -1, 0, input_matrix)
-                except:
-                    self.undirected_frames.append([-1])
-
-              
-            if self.undirected_frames[0][0] == -1:
-                QMessageBox.about(self, 'Warning', "DFS implement for connected undirected graph only! Please try again!")
-            else:
-                try:
-                    self.undirected_node_list[self.undirected_frames[self.undirected_idx][0]].status = 1
-
-                    for node in self.undirected_node_list:
-                        if self.undirected_frames[self.undirected_idx][0] != node.name: 
-                            node.status = 0
-
-                    self.undirected_idx += 1
-                    self.scene_1.update()
-                except:
-                    for node in self.undirected_node_list:
+                input_matrix = dict(matrixToList(self.adj_undirected_matrix))
+                # print(input_matrix)
+                dfs_result = dfs_iterative(input_matrix, start)
+                for item in dfs_result:
+                    self.undirected_frames.append([item])
+            try:
+                self.undirected_node_list[self.undirected_frames[self.undirected_idx][0]].status = 1
+                self.lbl_body.setStyleSheet("background-color:orange")
+                self.lbl_foot.setStyleSheet("background-color:orange")
+                for node in self.undirected_node_list:
+                    if self.undirected_frames[self.undirected_idx][0] != node.name: 
                         node.status = 0
-                    # self.lbl_head.setStyleSheet("background-color:white")
-                    self.scene_1.update()
-                    QMessageBox.about(self, 'Done', "DFS's result: " + str(self.undirected_frames))
+
+                self.undirected_idx += 1
+                self.scene_1.update()
+            except:
+                for node in self.undirected_node_list:
+                    node.status = 0
+                # self.lbl_head.setStyleSheet("background-color:white")
+                self.lbl_body.setStyleSheet("background-color:white")
+                self.lbl_foot.setStyleSheet("background-color:white")
+                self.scene_1.update()
+                QMessageBox.about(self, 'Done', "DFS's result: " + str(self.undirected_frames))
 
         else:
-            QMessageBox.about(self, 'Warning', "DFS implement for connected undirected graph only! Please try again!")
+            if not self.directed_frames: 
+                input_matrix = dict(matrixToList(self.adj_directed_matrix))
+                # print(input_matrix)
+                dfs_result = dfs_iterative(input_matrix, start)
+                for item in dfs_result:
+                    self.directed_frames.append([item])
+            try:
+                self.directed_node_list[self.directed_frames[self.directed_idx][0]].status = 1
+                self.lbl_body.setStyleSheet("background-color:orange")
+                self.lbl_foot.setStyleSheet("background-color:orange")
+                for node in self.directed_node_list:
+                    if self.directed_frames[self.directed_idx][0] != node.name: 
+                        node.status = 0
+
+                self.directed_idx += 1
+                self.scene_2.update()
+            except:
+                for node in self.directed_node_list:
+                    node.status = 0
+                # self.lbl_head.setStyleSheet("background-color:white")
+                self.lbl_body.setStyleSheet("background-color:white")
+                self.lbl_foot.setStyleSheet("background-color:white")
+                self.scene_2.update()
+                QMessageBox.about(self, 'Done', "DFS's result: " + str(self.directed_frames))
 
 
     def refresh(self):
@@ -1571,6 +1675,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.directed_idx = 0
         self.undirected_BFS_result = ''
         self.directed_BFS_result = ''
+        self.all_undirected_path = []
+        self.all_directed_path = []
         self.lbl_head.setStyleSheet("background-color:white")
         self.lbl_body.setStyleSheet("background-color:white")
         self.lbl_foot.setStyleSheet("background-color:white")
@@ -1626,52 +1732,25 @@ def matrixToList(a):
     for i in range(len(a)):
         for j in range(len(a[i])):
             if a[i][j] != 0:
-               adjList[i].append(j)
+                adjList[i].append(j)
+            else:
+                adjList[i]
     return adjList
 
-# Function to print the complete DFS-traversal
-def dfsUtil(u, node, visited, road_used, parent, it, adj, result=None):
+def dfs_iterative(graph, start):
+    stack, path = [start], []
 
-    if result is None:  # create a new result if no intermediate was given
-        result = []
+    while stack:
+        vertex = stack.pop()
+        # print(vertex)
+        if vertex in path:
+            continue
+        path.append(vertex)
+        for neighbor in graph[vertex]:
+            stack.append(neighbor)
+            # print(neighbor)
 
-    c = 0
- 
-    # Check if all th node is visited
-    # or not and count unvisited nodes
-    for i in range(node):
-        if (visited[i]):
-            c += 1
- 
-    # If all the node is visited return
-    if (c == node):
-        return
- 
-    # Mark not visited node as visited
-    visited[u] = True
- 
-    # Track the current edge
-    road_used.append([parent, u])
-    # print(road_used)
-    # Print the node
-    result.append([u])
-    # print(u, end = " ")
- 
-    # Check for not visited node and proceed with it.
-    for x in adj[u]:
-        # Call the DFs function if not visited
-        if (not visited[x]):
-            dfsUtil(x, node, visited, road_used, u, it + 1, adj, result)
-    
- 
-    # Backtrack through the last visited nodes
-    
-    for y in road_used:
-        if (y[1] == u):
-            dfsUtil(y[0], node, visited, road_used, u, it + 1, adj, result)
-    
-
-    return result
+    return path
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
