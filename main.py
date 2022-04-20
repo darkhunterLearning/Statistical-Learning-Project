@@ -487,6 +487,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.lbl_head: QtWidgets.QLabel = self.findChild(QtWidgets.QLabel, 'lbl_head')
         self.lbl_body: QtWidgets.QLabel = self.findChild(QtWidgets.QLabel, 'lbl_body')
         self.lbl_foot: QtWidgets.QLabel = self.findChild(QtWidgets.QLabel, 'lbl_foot')
+        self.lbl_start: QtWidgets.QLabel = self.findChild(QtWidgets.QLabel, 'lbl_start')
+        self.lbl_end: QtWidgets.QLabel = self.findChild(QtWidgets.QLabel, 'lbl_end')
 
         self.grb_graph_type: QtWidgets.QGroupBox = self.findChild(QtWidgets.QGroupBox, 'grb_graph_type')
 
@@ -515,6 +517,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.spb_source: QtWidgets.QSpinBox = self.findChild(QtWidgets.QSpinBox, 'spb_source')
         self.spb_des: QtWidgets.QSpinBox = self.findChild(QtWidgets.QSpinBox, 'spb_des')
+        self.spb_source.setMaximum(0)
+        self.spb_des.setMaximum(0)
 
         self.btn_1.clicked.connect(lambda: self.addNode())
         self.btn_2.clicked.connect(lambda: self.addEdge())
@@ -603,8 +607,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     self.btn_11.setEnabled(1)
 
                     self.undirected_current_number_nodes += 1
-
                     self.adj_undirected_matrix = []
+                    self.spb_source.setMaximum(self.undirected_current_number_nodes-1)
+                    self.spb_des.setMaximum(self.undirected_current_number_nodes-1)
 
                     for i in range(self.undirected_current_number_nodes):
                         self.adj_undirected_matrix.append([0 for i in range(self.undirected_current_number_nodes)])
@@ -674,10 +679,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     self.btn_9.setEnabled(1)
                     self.btn_10.setEnabled(1)
                     self.btn_11.setEnabled(1)
+                    
 
                     self.directed_current_number_nodes += 1
                     self.adj_directed_matrix = []
-
+                    self.spb_source.setMaximum(self.directed_current_number_nodes-1)
+                    self.spb_des.setMaximum(self.directed_current_number_nodes-1)
 
                     for i in range(self.directed_current_number_nodes):
                         self.adj_directed_matrix.append([0 for i in range(self.directed_current_number_nodes)])
@@ -761,6 +768,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.scene_1.removeItem(item)
                 self.undirected_node_list.remove(item)
                 self.undirected_current_number_nodes -= 1
+                self.spb_source.setMaximum(self.undirected_current_number_nodes-1)
+                self.spb_des.setMaximum(self.undirected_current_number_nodes-1)
 
                 for node in self.undirected_node_list:
                     node.name = tmp
@@ -887,6 +896,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.scene_2.removeItem(item)
                 self.directed_node_list.remove(item)
                 self.directed_current_number_nodes -= 1
+                self.spb_source.setMaximum(self.directed_current_number_nodes-1)
+                self.spb_des.setMaximum(self.directed_current_number_nodes-1)
 
                 for node in self.directed_node_list:
                     node.name = tmp
@@ -1061,6 +1072,18 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.textbox.setEnabled(1)
 
     def Dijkstra(self):
+        self.btn_1.setEnabled(0)
+        self.btn_2.setEnabled(0)
+        self.btn_3.setEnabled(0)
+        self.btn_4.setEnabled(0)
+        self.btn_5.setEnabled(0)
+        self.btn_6.setText('Next')
+        # self.btn_7.setEnabled(0)
+        self.btn_8.setEnabled(0)
+        self.btn_9.setEnabled(0)
+        self.btn_10.setEnabled(0)
+        self.btn_11.setEnabled(0)
+        self.textbox.setEnabled(0)
         self.lbl_head.setText('''
         function Dijkstra(Graph, source):
             for each vertex v in Graph.Vertices:
@@ -1165,6 +1188,19 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.lbl_body.setStyleSheet("background-color:white")
                 self.lbl_foot.setStyleSheet("background-color:white")
                 self.scene_1.update()
+                self.btn_1.setEnabled(1)
+                self.btn_2.setEnabled(1)
+                self.btn_3.setEnabled(1)
+                self.btn_4.setEnabled(1)
+                self.btn_5.setEnabled(1)
+                self.btn_6.setEnabled(1)
+                self.btn_7.setEnabled(1)
+                self.btn_8.setEnabled(1)
+                self.btn_9.setEnabled(1)
+                self.btn_10.setEnabled(1)
+                self.btn_11.setEnabled(1)
+                self.textbox.setEnabled(1)
+                self.btn_6.setText('Dijkstra')
                 QMessageBox.about(self, 'Done','Shortest path from ' + str(start) + ' to ' + str(end) + 
                                             ' is ' + str(shortest_path) + '. Length ' + str(shortest_dis))
         else:
@@ -1242,18 +1278,36 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.lbl_body.setStyleSheet("background-color:white")
                 self.lbl_foot.setStyleSheet("background-color:white")
                 self.scene_2.update()
+                self.btn_1.setEnabled(1)
+                self.btn_2.setEnabled(1)
+                self.btn_3.setEnabled(1)
+                self.btn_4.setEnabled(1)
+                self.btn_5.setEnabled(1)
+                self.btn_6.setEnabled(1)
+                self.btn_7.setEnabled(1)
+                self.btn_8.setEnabled(1)
+                self.btn_9.setEnabled(1)
+                self.btn_10.setEnabled(1)
+                self.btn_11.setEnabled(1)
+                self.textbox.setEnabled(1)
+                self.btn_6.setText('Dijkstra')
                 QMessageBox.about(self, 'Done','Shortest path from ' + str(start) + ' to ' + str(end) + 
                                             ' is ' + str(shortest_path) + '. Length ' + str(shortest_dis))
 
     def BellmanFord(self):
-        # print('BellmanFord')
-        # print('Undirected')
-        # for x, y, w in self.undirected_edges:
-        #     print(x, y, w)
-        # print('----------')
-        # print('Directed')
-        # for x, y, w in self.directed_edges:
-        #     print(x, y, w)
+        self.btn_1.setEnabled(0)
+        self.btn_2.setEnabled(0)
+        self.btn_3.setEnabled(0)
+        self.btn_4.setEnabled(0)
+        self.btn_5.setEnabled(0)
+        self.btn_6.setEnabled(0)
+        # self.btn_7.setEnabled(0)
+        self.btn_8.setEnabled(0)
+        self.btn_9.setText('Next')
+        # self.btn_9.setEnabled(0)
+        self.btn_10.setEnabled(0)
+        self.btn_11.setEnabled(0)
+        self.textbox.setEnabled(0)
         self.lbl_head.setText('''
         function bellmanFord(Graph, source):
             for each vertex v in Graph.Vertices:
@@ -1359,7 +1413,19 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     for i in range(self.undirected_current_number_nodes):
                         path = "Shortest path length from {0} to {1} is {2}".format(start, i, dist[i])
                         text_info += path + '\n' 
-                    
+                    self.btn_1.setEnabled(1)
+                    self.btn_2.setEnabled(1)
+                    self.btn_3.setEnabled(1)
+                    self.btn_4.setEnabled(1)
+                    self.btn_5.setEnabled(1)
+                    self.btn_6.setEnabled(1)
+                    self.btn_7.setEnabled(1)
+                    self.btn_8.setEnabled(1)
+                    self.btn_9.setEnabled(1)
+                    self.btn_10.setEnabled(1)
+                    self.btn_11.setEnabled(1)
+                    self.textbox.setEnabled(1)
+                    self.btn_9.setText('Bellman-Ford')
                     QMessageBox.about(self, 'Vertex Distance from Source', text_info)
         else:
             dist = [inf] * self.directed_current_number_nodes
@@ -1439,12 +1505,38 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     for i in range(self.directed_current_number_nodes):
                         path = "Shortest path length from {0} to {1} is {2}".format(start, i, dist[i])
                         text_info += path + '\n' 
-                    
+
+                    self.btn_1.setEnabled(1)
+                    self.btn_2.setEnabled(1)
+                    self.btn_3.setEnabled(1)
+                    self.btn_4.setEnabled(1)
+                    self.btn_5.setEnabled(1)
+                    self.btn_6.setEnabled(1)
+                    self.btn_7.setEnabled(1)
+                    self.btn_8.setEnabled(1)
+                    self.btn_9.setEnabled(1)
+                    self.btn_10.setEnabled(1)
+                    self.btn_11.setEnabled(1)
+                    self.textbox.setEnabled(1)
+                    self.btn_9.setText('Bellman-Ford')
                     QMessageBox.about(self, 'Vertex Distance from Source', text_info)
 
         # print(duplicate(list_frames, self.directed_current_number_nodes))
 
     def BFS(self):
+        self.btn_1.setEnabled(0)
+        self.btn_2.setEnabled(0)
+        self.btn_3.setEnabled(0)
+        self.btn_4.setEnabled(0)
+        self.btn_5.setEnabled(0)
+        self.btn_6.setEnabled(0)
+        # self.btn_7.setEnabled(0)
+        self.btn_8.setEnabled(0)
+        self.btn_9.setEnabled(0)
+        # self.btn_10.setEnabled(0)
+        self.btn_10.setText('Next')
+        self.btn_11.setEnabled(0)
+        self.textbox.setEnabled(0)
         self.lbl_head.setText('''
         procedure BFS(G, root) is
             let Q be a queue
@@ -1525,6 +1617,19 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.lbl_body.setStyleSheet("background-color:white")
                 self.lbl_foot.setStyleSheet("background-color:white")
                 self.scene_1.update()
+                self.btn_1.setEnabled(1)
+                self.btn_2.setEnabled(1)
+                self.btn_3.setEnabled(1)
+                self.btn_4.setEnabled(1)
+                self.btn_5.setEnabled(1)
+                self.btn_6.setEnabled(1)
+                self.btn_7.setEnabled(1)
+                self.btn_8.setEnabled(1)
+                self.btn_9.setEnabled(1)
+                self.btn_10.setEnabled(1)
+                self.btn_11.setEnabled(1)
+                self.textbox.setEnabled(1)
+                self.btn_10.setText('BFS')
                 QMessageBox.about(self, 'Done', "BFS's result: " + self.undirected_BFS_result)
         else:
             if not self.directed_frames: 
@@ -1583,10 +1688,35 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.lbl_body.setStyleSheet("background-color:white")
                 self.lbl_foot.setStyleSheet("background-color:white")
                 self.scene_2.update()
+                self.btn_1.setEnabled(1)
+                self.btn_2.setEnabled(1)
+                self.btn_3.setEnabled(1)
+                self.btn_4.setEnabled(1)
+                self.btn_5.setEnabled(1)
+                self.btn_6.setEnabled(1)
+                self.btn_7.setEnabled(1)
+                self.btn_8.setEnabled(1)
+                self.btn_9.setEnabled(1)
+                self.btn_10.setEnabled(1)
+                self.btn_11.setEnabled(1)
+                self.textbox.setEnabled(1)
+                self.btn_10.setText('BFS')
                 QMessageBox.about(self, 'Done', "BFS's result: " + self.directed_BFS_result)
 
     def DFS(self):
-        # print('DFS')
+        self.btn_1.setEnabled(0)
+        self.btn_2.setEnabled(0)
+        self.btn_3.setEnabled(0)
+        self.btn_4.setEnabled(0)
+        self.btn_5.setEnabled(0)
+        self.btn_6.setEnabled(0)
+        # self.btn_7.setEnabled(0)
+        self.btn_8.setEnabled(0)
+        self.btn_9.setEnabled(0)
+        self.btn_10.setEnabled(0)
+        self.btn_11.setText('Next')
+        # self.btn_11.setEnabled(0)
+        self.textbox.setEnabled(0)
         self.lbl_head.setText('''
         procedure DFS_iterative(G, v) is
             let S be a stack
@@ -1631,6 +1761,19 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.lbl_body.setStyleSheet("background-color:white")
                 self.lbl_foot.setStyleSheet("background-color:white")
                 self.scene_1.update()
+                self.btn_1.setEnabled(1)
+                self.btn_2.setEnabled(1)
+                self.btn_3.setEnabled(1)
+                self.btn_4.setEnabled(1)
+                self.btn_5.setEnabled(1)
+                self.btn_6.setEnabled(1)
+                self.btn_7.setEnabled(1)
+                self.btn_8.setEnabled(1)
+                self.btn_9.setEnabled(1)
+                self.btn_10.setEnabled(1)
+                self.btn_11.setEnabled(1)
+                self.textbox.setEnabled(1)
+                self.btn_11.setText('DFS')
                 QMessageBox.about(self, 'Done', "DFS's result: " + str(self.undirected_frames))
 
         else:
@@ -1657,6 +1800,19 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 self.lbl_body.setStyleSheet("background-color:white")
                 self.lbl_foot.setStyleSheet("background-color:white")
                 self.scene_2.update()
+                self.btn_1.setEnabled(1)
+                self.btn_2.setEnabled(1)
+                self.btn_3.setEnabled(1)
+                self.btn_4.setEnabled(1)
+                self.btn_5.setEnabled(1)
+                self.btn_6.setEnabled(1)
+                self.btn_7.setEnabled(1)
+                self.btn_8.setEnabled(1)
+                self.btn_9.setEnabled(1)
+                self.btn_10.setEnabled(1)
+                self.btn_11.setEnabled(1)
+                self.textbox.setEnabled(1)
+                self.btn_11.setText('DFS')
                 QMessageBox.about(self, 'Done', "DFS's result: " + str(self.directed_frames))
 
 
@@ -1682,6 +1838,18 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.lbl_foot.setStyleSheet("background-color:white")
         self.scene_1.update()
         self.scene_2.update()
+        self.btn_1.setEnabled(1)
+        self.btn_2.setEnabled(1)
+        self.btn_3.setEnabled(1)
+        self.btn_4.setEnabled(1)
+        self.btn_5.setEnabled(1)
+        self.btn_6.setEnabled(1)
+        self.btn_7.setEnabled(1)
+        self.btn_8.setEnabled(1)
+        self.btn_9.setEnabled(1)
+        self.btn_10.setEnabled(1)
+        self.btn_11.setEnabled(1)
+        self.textbox.setEnabled(1)
         # print('OK')
 
     def allPath(self):
@@ -1721,6 +1889,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.graph_type = 'Directed'
         else:
             self.graph_type = 'Undirected'
+            
 
         # print(self.graph_type)
 
